@@ -1,10 +1,12 @@
 on:
   workflow_dispatch:
     inputs:
-      command:
+      Slots:
         type: string
         required: true
-        description: 
+      Symbols:
+        type: string
+        required: true
 
 jobs:
   main:
@@ -15,9 +17,9 @@ jobs:
         with:
           dotnet-version: '8.0.x'
       - run: dotnet build --configuration Debug
-      - run: dotnet run --configuration Debug -- ${{inputs.command}}
+      - run: dotnet run --configuration Debug -- ${{inputs.Slots}} -- ${{inputs.Symbols}}
       - run: dotnet build --configuration Release
-      - run: dotnet run --configuration Release -- ${{inputs.command}} > output.txt
+      - run: dotnet run --configuration Release -- ${{inputs.Slots}} -- ${{inputs.Symbols}} > output.txt
       - run: cat output.txt
       - uses: actions/upload-artifact@v3
         with:
