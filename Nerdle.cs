@@ -9,6 +9,7 @@ class Nerdle
         get => _symbols;
         init => (InitialSymbols, _isMath, _symbols) = (value, value.Any(static s => s.symbol is '='), value
             .Where(static s => s is (_, > 0, _) or (_, _, >= 0))
+            .Where(s => s.qty >= 0)
             .Where(s => s.qty == 0 || (Slot.Count(slot => slot.mandatory == s.symbol) is var qty && qty != s.qty))
             .ToArray());
     }
