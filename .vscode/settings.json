@@ -1,3 +1,7 @@
 {
-    "dotnet.defaultSolution": "Nerdle.sln"
+    "dotnet.defaultSolution": "Nerdle.sln",
+    "[yaml]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+    }
 }

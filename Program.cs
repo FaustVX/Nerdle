@@ -1,45 +1,32 @@
-﻿var nerdle0 = new Nerdle()
+﻿// format for args = null "ABC" A "D" null "" -- A 0 0 B -1 0 C 5 0
+
+var delimiter = args.AsSpan().IndexOf("--");
+var slots = args.AsSpan(0, delimiter);
+var symbols = args.AsSpan(delimiter + 1);
+
+static (char?, char[]?)[] CreateSlots(ReadOnlySpan<string> input)
 {
-    Slot = new (char?, char[]?)[5]
-    {
-        (null, "".ToCharArray()),
-        (null, "".ToCharArray()),
-        (null, "".ToCharArray()),
-        (null, "".ToCharArray()),
-        (null, "".ToCharArray()),
-    },
-    Symbols = new (char c, int qty, int min)[]
-    {
-        ('A', 0, 0),
-        ('B', 0, 0),
-        ('C', 0, 0),
-        ('D', 0, 0),
-        ('E', 0, 0),
-        ('F', 0, 0),
-        ('G', 0, 0),
-        ('H', 0, 0),
-        ('I', 0, 0),
-        ('J', 0, 0),
-        ('K', 0, 0),
-        ('L', 0, 0),
-        ('M', 0, 0),
-        ('N', 0, 0),
-        ('O', 0, 0),
-        ('P', 0, 0),
-        ('Q', 0, 0),
-        ('R', 0, 0),
-        ('S', 0, 0),
-        ('T', 0, 0),
-        ('U', 0, 0),
-        ('V', 0, 0),
-        ('W', 0, 0),
-        ('X', 0, 0),
-        ('Y', 0, 0),
-        ('Z', 0, 0),
-    },
+    var size = input.Length / 2;
+    var slots = new (char?, char[]?)[size];
+    for (var i = 0; i < size; i++)
+        slots[i] = (input[i * 2] is "null" ? null : input[i][0], string.IsNullOrWhiteSpace(input[i * 2 + 1]) ? Array.Empty<char>() : input[i + 1].ToCharArray());
+    return slots;
 }
-.WithProbalities(NerdleProbalistic.CreateMarkovChain(File.ReadAllLines(@"liste.de.mots.francais.frgut.txt").ToHashSet()))
-// .WithProbalities(NerdleProbalistic.CreateMarkovChain(File.ReadAllLines(@"enable1.txt").ToHashSet()))
+
+static (char c, int qty, int min)[] CreateSymbols(ReadOnlySpan<string> input)
+{
+    var size = input.Length / 3;
+    var symbols = new (char c, int qty, int min)[size];
+    for (var i = 0; i < size; i++)
+        symbols[i] = (input[i * 3][0], int.Parse(input[i * 3 + 1]), int.Parse(input[i * 3 + 2]));
+    return symbols;
+}
+
+var nerdle0 = new Nerdle()
+{
+    Slot = CreateSlots(slots),
+    Symbols = CreateSymbols(symbols),
+}
 .GetAllLines(printMaxCombinatory: true, steps: 200);
 
 #if RELEASE

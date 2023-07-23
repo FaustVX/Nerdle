@@ -3,6 +3,8 @@ on:
     inputs:
       command:
         type: string
+        required: true
+        description: 
 
 jobs:
   main:
@@ -12,5 +14,11 @@ jobs:
       - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
-      - 
-        run: dotnet run -- ${{inputs.command}}
+      - run: dotnet build --configuration Debug
+      - run: dotnet run --configuration Debug -- ${{inputs.command}}
+      - run: dotnet build --configuration Release
+      - run: dotnet run --configuration Release -- ${{inputs.command}} > output.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: output
+          path: output.txt
