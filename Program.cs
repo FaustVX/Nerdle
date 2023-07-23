@@ -1,4 +1,4 @@
-﻿// format for args = null "ABC" A "D" null "" -- A 0 0 B -1 0 C 5 0
+// format for args = null "ABC" A "D" null "" -- A 0 0 B -1 0 C 5 0
 
 var delimiter = args.AsSpan().IndexOf("--");
 var slots = args.AsSpan(0, delimiter);
@@ -9,7 +9,7 @@ static (char?, char[]?)[] CreateSlots(ReadOnlySpan<string> input)
     var size = input.Length / 2;
     var slots = new (char?, char[]?)[size];
     for (var i = 0; i < size; i++)
-        slots[i] = (input[i * 2] is "null" ? null : input[i][0], string.IsNullOrWhiteSpace(input[i * 2 + 1]) ? Array.Empty<char>() : input[i + 1].ToCharArray());
+        slots[i] = (input[i * 2] is "null" ? null : input[i * 2][0], string.IsNullOrWhiteSpace(input[i * 2 + 1]) ? Array.Empty<char>() : input[i * 2 + 1].ToCharArray());
     return slots;
 }
 
