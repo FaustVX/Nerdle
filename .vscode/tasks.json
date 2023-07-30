@@ -42,8 +42,8 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "run 1",
-            "command": "dotnet run --configuration Debug",
+            "label": "run",
+            "command": "dotnet run --configuration Release -- 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "type": "shell",
             "problemMatcher": "$msCompile",
             "presentation": {
@@ -53,21 +53,7 @@
                 "panel": "shared",
                 "showReuseMessage": true,
                 "clear": false,
-            }
-        },
-        {
-            "label": "run 2",
-            "command": "dotnet run --configuration Release > output.txt; code --reuse-window output.txt",
-            "type": "shell",
-            "problemMatcher": "$msCompile",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false,
-            }
+            },
         },
     ]
 }

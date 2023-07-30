@@ -44,4 +44,10 @@ public static class Ext
             Probalities = probalities,
             MinProb = minProb,
         };
+    public static T Forward<T>(this T value, Func<T, T> func, int count)
+    {
+        if (count <= 0)
+            return value;
+        return func(value).Forward(func, count - 1);
+    }
 }

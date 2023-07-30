@@ -43,7 +43,9 @@ class Nerdle
 #endif
             }
 
-        return Process(0, new char[Slot.Length], symbols).ReportProgress(combinatory, steps).Where(GetValidator(symbols));
+        return Process(0, new char[Slot.Length], symbols)
+        .ReportProgress(combinatory, steps)
+        .Where(GetValidator(symbols));
     }
 
     protected virtual Func<string, bool> GetValidator(char[][] symbols)
@@ -68,6 +70,9 @@ class Nerdle
                 yield return new(line);
         }
     }
+
+    public static ISet<char> GetNextSymbol(string start, IEnumerable<string> symbols)
+    => symbols.Where(s => s.StartsWith(start)).Select(s => s[start.Length]).ToHashSet();
 
     bool IsValidLineMath(string line)
     => line.IndexOf('=') is var index and >= 3
