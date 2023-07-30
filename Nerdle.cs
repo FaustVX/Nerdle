@@ -14,7 +14,7 @@ class Nerdle
             .ToArray());
     }
 
-    public IEnumerable<string> GetAllLines(bool printMaxCombinatory = false, int steps = 100)
+    public IEnumerable<string> GetAllLines(bool printMaxCombinatory = false, int steps = 100, TextWriter? writer = null)
     {
         // System.Diagnostics.Debugger.Launch();
         var symbols = Enumerable.Repeat((Slot, Symbols), Slot.Length)
@@ -43,8 +43,11 @@ class Nerdle
 #endif
             }
 
+        if (writer is null && steps != 0)
+            writer = Console.Error;
+
         return Process(0, new char[Slot.Length], symbols)
-        .ReportProgress(combinatory, steps)
+        .ReportProgress(combinatory, steps, writer)
         .Where(GetValidator(symbols));
     }
 

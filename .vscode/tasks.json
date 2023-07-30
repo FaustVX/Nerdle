@@ -43,7 +43,7 @@
         },
         {
             "label": "run",
-            "command": "dotnet run --configuration Release -- 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "command": "dotnet run --configuration Release -- 5 ABCDE",
             "type": "shell",
             "problemMatcher": "$msCompile",
             "presentation": {

@@ -1,17 +1,26 @@
 using Spectre.Console;
-using PrimaryParameter.SG;
 using Spectre.Console.Rendering;
 using System.Diagnostics;
 
-partial class Letter([Field(Type = typeof(char[]), AssignFormat = "{0}.ToArray()")] ISet<char> symbols) : IRenderable
+partial class Letter: IRenderable
 {
     public static Letter? Current { get; set; } = default!;
 
     private int _selected;
+    private char[] _symbols = default!;
 
     private int SymbolsLength => _symbols.Length;
     private bool IsLetterSelected => this == Current;
-    public char Selected => _symbols[_selected];
+    public char Selected
+    {
+        get => _symbols[_selected];
+        set => _selected = _symbols.AsSpan().IndexOf(value) switch
+            {
+                < 0 => throw new ArgumentOutOfRangeException(nameof(Selected), value.ToString(), null),
+                var i => i,
+            };
+    }
+
     public LetterMode LetterMode { get; set; }
     public required Letter? Previous
     {
@@ -21,6 +30,22 @@ partial class Letter([Field(Type = typeof(char[]), AssignFormat = "{0}.ToArray()
                 l.Next = this;
         }
     }
+
+    public required ISet<char>? Symbols
+    {
+        set
+        {
+            if (_symbols is null)
+            {
+                _symbols = value?.ToArray() ?? Array.Empty<char>();
+                return;
+            }
+            var selected = Selected;
+            _symbols = value?.ToArray() ?? Array.Empty<char>();
+            (_selected, LetterMode) = _symbols.AsSpan().IndexOf(selected) is >= 0 and var i ? (i, LetterMode) : (0, LetterMode.Unknown);
+        }
+    }
+
     public Letter? Next { get; private set; }
 
     Measurement IRenderable.Measure(RenderOptions options, int maxWidth)
@@ -58,7 +83,7 @@ partial class Letter([Field(Type = typeof(char[]), AssignFormat = "{0}.ToArray()
                 if ((int)LetterMode > 3)
                     LetterMode = LetterMode.Unknown;
                 break;
-            case ConsoleKey.Enter:
+            case ConsoleKey.Enter when LetterMode != LetterMode.Unknown:
                 Current = Next;
                 break;
         }
