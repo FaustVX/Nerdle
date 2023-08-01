@@ -74,8 +74,8 @@ class Nerdle
         }
     }
 
-    public static ISet<char> GetNextSymbol(string start, IEnumerable<string> symbols)
-    => symbols.Where(s => s.StartsWith(start)).Select(s => s[start.Length]).ToHashSet();
+    public static ISet<char> GetNextSymbol(string start, IEnumerable<string> candidates)
+    => candidates.Where(s => s.StartsWith(start)).Select(s => s[start.Length]).ToHashSet();
 
     bool IsValidLineMath(string line)
     => line.IndexOf('=') is var index and >= 3

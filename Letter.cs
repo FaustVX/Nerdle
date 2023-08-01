@@ -5,6 +5,7 @@ using System.Diagnostics;
 partial class Letter: IRenderable
 {
     public static Letter? Current { get; set; } = default!;
+    public static string StartWith { get; private set; } = "";
 
     private int _selected;
     private char[] _symbols = default!;
@@ -84,6 +85,7 @@ partial class Letter: IRenderable
                     LetterMode = LetterMode.Unknown;
                 break;
             case ConsoleKey.Enter when LetterMode != LetterMode.Unknown:
+                StartWith = Current?.Next is null ? "" : (StartWith + Selected);
                 Current = Next;
                 break;
         }

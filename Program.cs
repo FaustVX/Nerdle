@@ -1,4 +1,4 @@
-using Spectre.Console;
+﻿using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 //     nerdle lenght ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
@@ -11,43 +11,51 @@ var table = new Table();
 for (var s = 1; s <= slotsLength; s++)
     table.AddColumn(new TableColumn(s.ToString()) { Alignment = Justify.Center });
 
-var previous = Letter.Current;
-table.AddRow(Enumerable.Range(0, slotsLength).Select(_ =>
-{
-    previous = new Letter() { Previous = previous, Symbols = symbols };
-    Letter.Current ??= previous;
-    return previous;
-}));
+var candidates = GenerateCandidates(slotsLength, symbols)
+    .ToArray();
 
-var firsts = new List<Letter>()
-{
-    Letter.Current!,
-};
+var firsts = new List<Letter>();
 
-#if DEBUG
-    Letter.Current!.Selected = Random.Shared.GetItem(args[1].ToCharArray());
-    Letter.Current!.LetterMode = Random.Shared.GetItem<LetterMode>();
-    Letter.Current.Next!.Selected = Random.Shared.GetItem(args[1].ToCharArray());
-    Letter.Current.Next!.LetterMode = Random.Shared.GetItem<LetterMode>();
-    Letter.Current.Next.Next!.Selected = Random.Shared.GetItem(args[1].ToCharArray());
-    Letter.Current.Next.Next!.LetterMode = Random.Shared.GetItem<LetterMode>();
-    Letter.Current.Next.Next.Next!.Selected = Random.Shared.GetItem(args[1].ToCharArray());
-    Letter.Current.Next.Next.Next!.LetterMode = Random.Shared.GetItem<LetterMode>();
-    Letter.Current.Next.Next.Next.Next!.Selected = Random.Shared.GetItem(args[1].ToCharArray());
-    Letter.Current.Next.Next.Next.Next!.LetterMode = Random.Shared.GetItem<LetterMode>();
-    Letter.Current = previous;
-#endif
+table.AddRow(CreateLetters(candidates, slotsLength, firsts));
+
+static IEnumerable<string> GenerateCandidates(int length, IEnumerable<char> symbols)
+{
+    if (length <= 1)
+        foreach (var symbol in symbols)
+            yield return symbol.ToString();
+    else
+        foreach (var candidate in GenerateCandidates(length - 1, symbols))
+            foreach (var symbol in symbols)
+                yield return candidate + symbol;
+}
 
 do
 {
     AnsiConsole.Clear();
     AnsiConsole.Write(table);
     Letter.Current!.ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key);
+    if (Letter.Current is {} letter)
+        letter.Symbols = Nerdle.GetNextSymbol(Letter.StartWith, candidates);
     if (Letter.Current is null)
-        table.AddRow(AddRow(firsts, slotsLength, symbols));
+    {
+        (var row, candidates) = AddRow(firsts, slotsLength, symbols);
+        table.AddRow(row);
+    }
 } while (Letter.Current is not null);
 
-static IEnumerable<Letter> AddRow(IList<Letter> firsts, int length, ISet<char> symbols)
+static IEnumerable<Letter> CreateLetters(string[] candidates, int length, IList<Letter> firsts)
+{
+    (var previous, Letter.Current) = (Letter.Current, null);
+    return Enumerable.Repeat(candidates, length).Select((c, i) =>
+    {
+        previous = new Letter() { Previous = previous, Symbols = candidates.Select(c => c[i]).ToHashSet() };
+        if (Letter.Current is null)
+            firsts.Add(Letter.Current = previous);
+        return previous;
+    });
+}
+
+static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> firsts, int length, ISet<char> symbols)
 {
     var words = firsts
         .Select(static l => l.SelectAll(static l => l.Next!, static l => l != null))
@@ -73,14 +81,15 @@ static IEnumerable<Letter> AddRow(IList<Letter> firsts, int length, ISet<char> s
             })
         .ToArray();
 
-    var nerdle = new Nerdle()
+    var candidates = new Nerdle()
     {
         Slot = CreateSlots(slots),
         Symbols = CreateSymbols(symbolsQty),
     }
-    .GetAllLines(printMaxCombinatory: false, steps: 0);
+    .GetAllLines(printMaxCombinatory: false, steps: 0)
+    .ToArray();
 
-    var outputLayout = new Layout("Output", new Panel(new Rows(nerdle.Select(static n => new Text(n)))) { Header = new("Output") });
+    var outputLayout = new Layout("Output", new Panel(new Rows(candidates.Select(static n => new Text(n)))) { Header = new("Output") });
     var symbolsGrid = new Table();
     symbolsGrid.AddColumn("Symbol");
     symbolsGrid.AddColumn("Quantity");
@@ -89,7 +98,7 @@ static IEnumerable<Letter> AddRow(IList<Letter> firsts, int length, ISet<char> s
     AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new("Symbols") })));
     AnsiConsole.Console.Input.ReadKey(intercept: true);
 
-    yield break;
+    return (CreateLetters(candidates, length, firsts), candidates);
 
     static (char?, char[]?)[] CreateSlots(IReadOnlyList<string> input)
     {
