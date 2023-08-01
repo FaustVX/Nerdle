@@ -1,6 +1,7 @@
-﻿using Spectre.Console;
+using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
+//     nerdle lenght ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
 
 var slotsLength = int.Parse(args[0]);
 var symbols = args[1].ToHashSet();
