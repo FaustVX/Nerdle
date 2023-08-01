@@ -1,4 +1,4 @@
-﻿using Spectre.Console;
+using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 //     nerdle lenght ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
@@ -72,30 +72,32 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
                 { Selected: var c } => new string[2] { "null", c.ToString() }
             }))
         .ToArray();
-    var symbolsQty = symbols
+    var symbolsQty = CreateSymbols(symbols
         .SelectMany(static s => new string[3]
             {
                 s.ToString(),
                 "0",
                 "0",
             })
-        .ToArray();
+        .ToArray());
 
     var candidates = new Nerdle()
     {
         Slot = CreateSlots(slots),
-        Symbols = CreateSymbols(symbolsQty),
+        Symbols = symbolsQty,
     }
     .GetAllLines(printMaxCombinatory: false, steps: 0)
     .ToArray();
 
-    var outputLayout = new Layout("Output", new Panel(new Rows(candidates.Select(static n => new Text(n)))) { Header = new("Output") });
-    var symbolsGrid = new Table();
+    var outputLayout = new Layout("Output", new Panel(new Rows(candidates.Select(static n => new Text(n)))) { Header = new("Output"), Expand = true });
+    var symbolsGrid = new Table() { Expand = true };
     symbolsGrid.AddColumn("Symbol");
     symbolsGrid.AddColumn("Quantity");
     symbolsGrid.AddColumn("Minimum");
+    foreach (var (c, qty, min) in symbolsQty)
+        symbolsGrid.AddRow(c.ToString(), qty.ToString(), min.ToString());
 
-    AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new("Symbols") })));
+    AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new("Symbols"), Expand = true })));
     AnsiConsole.Console.Input.ReadKey(intercept: true);
 
     return (CreateLetters(candidates, length, firsts), candidates);
