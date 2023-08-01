@@ -65,12 +65,12 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
         .Select(static l => l.ToArray())
         .ToArray();
     var slots = letters
-        .SelectMany(static l => l
-            .SelectMany(static l => l switch
-            {
-                { LetterMode: LetterMode.CorrectPlace, Selected: var c } => new string[2] { c.ToString(), " " },
-                { Selected: var c } => new string[2] { "null", c.ToString() }
-            }))
+        .SelectMany(static l =>
+        {
+            if (l.FirstOrDefault(static l => l.LetterMode == LetterMode.CorrectPlace) is { Selected: var c })
+                return new string[2] { c.ToString(), " " };
+            return new string[2] { "null", string.Concat(l.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected)) };
+        })
         .ToArray();
     var symbolsQty = CreateSymbols(symbols
         .SelectMany(static s => new string[3]
