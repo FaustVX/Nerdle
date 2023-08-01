@@ -1,4 +1,4 @@
-using Spectre.Console;
+﻿using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 //     nerdle lenght ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
@@ -36,12 +36,15 @@ do
     Letter.Current!.ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key);
     if (Letter.Current is {} letter)
         letter.Symbols = Nerdle.GetNextSymbol(Letter.StartWith, candidates);
-    if (Letter.Current is null)
+    else
     {
         (var row, candidates) = AddRow(firsts, slotsLength, symbols);
-        table.AddRow(row);
+        if (candidates.Length > 1)
+            table.AddRow(row);
     }
 } while (Letter.Current is not null);
+AnsiConsole.Clear();
+AnsiConsole.Write(table);
 
 static IEnumerable<Letter> CreateLetters(string[] candidates, int length, IList<Letter> firsts)
 {
