@@ -1,16 +1,16 @@
 class Nerdle
 {
     public required (char? mandatory, char[]? forbiden)[] Slot { get; init; }
-    private readonly (char symbol, int qty, int min)[] _symbols = default!;
+    private readonly (char symbol, int? qty, int min)[] _symbols = default!;
     private readonly bool _isMath = default;
-    public (char symbol, int qty, int min)[] InitialSymbols { get; private init; } = default!;
-    public required (char symbol, int qty, int min)[] Symbols
+    public (char symbol, int? qty, int min)[] InitialSymbols { get; private init; } = default!;
+    public required (char symbol, int? qty, int min)[] Symbols
     {
         get => _symbols;
         init => (InitialSymbols, _isMath, _symbols) = (value, value.Any(static s => s.symbol is '='), value
             .Where(static s => s is (_, > 0, _) or (_, _, >= 0))
-            .Where(s => s.qty >= 0)
-            .Where(s => s.qty == 0 || (Slot.Count(slot => slot.mandatory == s.symbol) is var qty && qty != s.qty))
+            .Where(s => s.qty is > 0 or null)
+            .Where(s => s.qty is null || (Slot.Count(slot => slot.mandatory == s.symbol) is var qty && qty != s.qty))
             .ToArray());
     }
 
@@ -135,18 +135,18 @@ class Nerdle
         return true;
     }
 
-    static bool CheckSymbolQty(string line, (char symbol, int qty, int min)[] symbols)
+    static bool CheckSymbolQty(string line, (char symbol, int? qty, int min)[] symbols)
     {
         foreach (var symbol in symbols)
             switch (symbol)
             {
-                case (_, 0, 0):
+                case (_, null, <= 0):
                     break;
-                case (_, <= 0, var min):
+                case (_, < 0 or null, int min):
                     if (line.Count(symbol.symbol.Equals) < min)
                         return false;
                     break;
-                case (_, var qty, _):
+                case (_, int qty, _):
                     if (line.Count(symbol.symbol.Equals) != qty)
                         return false;
                     break;

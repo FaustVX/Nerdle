@@ -98,7 +98,7 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
     symbolsGrid.AddColumn("Quantity");
     symbolsGrid.AddColumn("Minimum");
     foreach (var (c, qty, min) in symbolsQty)
-        symbolsGrid.AddRow(c.ToString(), qty.ToString(), min.ToString());
+        symbolsGrid.AddRow(c.ToString(), qty?.ToString() ?? "?", min.ToString());
 
     AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new("Symbols"), Expand = true })));
     AnsiConsole.Console.Input.ReadKey(intercept: true);
@@ -114,12 +114,12 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
         return slots;
     }
 
-    static (char c, int qty, int min)[] CreateSymbols(IReadOnlyList<string> input)
+    static (char c, int? qty, int min)[] CreateSymbols(IReadOnlyList<string> input)
     {
         var size = input.Count / 3;
-        var symbols = new (char c, int qty, int min)[size];
+        var symbols = new (char c, int? qty, int min)[size];
         for (var i = 0; i < size; i++)
-            symbols[i] = (input[i * 3][0], int.Parse(input[i * 3 + 1]), int.Parse(input[i * 3 + 2]));
+            symbols[i] = (input[i * 3][0], input[i * 3 + 1] is "null" ? null : int.Parse(input[i * 3 + 1]), int.Parse(input[i * 3 + 2]));
         return symbols;
     }
 }
