@@ -142,12 +142,12 @@ class Nerdle
             {
                 case (_, null, <= 0):
                     break;
-                case (_, < 0 or null, int min):
-                    if (line.Count(symbol.symbol.Equals) < min)
-                        return false;
-                    break;
                 case (_, int qty, _):
                     if (line.Count(symbol.symbol.Equals) != qty)
+                        return false;
+                    break;
+                case (_, _, int min):
+                    if (line.Count(symbol.symbol.Equals) < min)
                         return false;
                     break;
             }
