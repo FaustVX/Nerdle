@@ -75,14 +75,9 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
             return new string[2] { "null", string.Concat(l.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected)) };
         })
         .ToArray();
-    var symbolsQty = CreateSymbols(symbols
-        .SelectMany(static s => new string[3]
-            {
-                s.ToString(),
-                "0",
-                "0",
-            })
-        .ToArray());
+    var symbolsQty = symbols
+        .Select(static s => (s, new int?(), 0))
+        .ToArray();
 
     var candidates = new Nerdle()
     {
@@ -112,14 +107,5 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
         for (var i = 0; i < size; i++)
             slots[i] = (input[i * 2] is "null" ? null : input[i * 2][0], string.IsNullOrWhiteSpace(input[i * 2 + 1]) ? Array.Empty<char>() : input[i * 2 + 1].ToCharArray());
         return slots;
-    }
-
-    static (char c, int? qty, int min)[] CreateSymbols(IReadOnlyList<string> input)
-    {
-        var size = input.Count / 3;
-        var symbols = new (char c, int? qty, int min)[size];
-        for (var i = 0; i < size; i++)
-            symbols[i] = (input[i * 3][0], input[i * 3 + 1] is "null" ? null : int.Parse(input[i * 3 + 1]), int.Parse(input[i * 3 + 2]));
-        return symbols;
     }
 }
