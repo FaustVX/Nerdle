@@ -43,7 +43,7 @@
         },
         {
             "label": "run",
-            "command": "dotnet run --configuration Release -- 5 ABCDE",
+            "command": "dotnet run --configuration Release -- ${input:qty} ${input:symbols}",
             "type": "shell",
             "problemMatcher": "$msCompile",
             "presentation": {
@@ -55,5 +55,27 @@
                 "clear": false,
             },
         },
+    ],
+    "inputs": [
+        {
+            "id": "qty",
+            "type": "command",
+            "command": "memento.promptString",
+            "args": {
+                "id": "qty",
+                "description": "Word Length",
+                "default": "5",
+            }
+        },
+        {
+            "id": "symbols",
+            "type": "command",
+            "command": "memento.pickString",
+            "args": {
+                "id": "symbols",
+                "description": "Build mode",
+                "options": ["ABCDE", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "1234567890+-*/=", "1234567890+-*/()²³="],
+            }
+        }
     ]
 }
