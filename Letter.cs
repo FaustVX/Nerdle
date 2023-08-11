@@ -65,28 +65,34 @@ partial class Letter: IRenderable
         yield return new(Selected.ToString(), new(background: background, foreground: foreground, decoration: IsLetterSelected ? Decoration.Underline : null));
     }
 
-    public void ProcessKey(ConsoleKey key)
+    public void ProcessKey(ConsoleKeyInfo key)
     {
         switch (key)
         {
-            case ConsoleKey.UpArrow:
+            case { Key: ConsoleKey.UpArrow }:
                 if (_selected <= 0)
                     _selected = SymbolsLength;
                 _selected--;
                 break;
-            case ConsoleKey.DownArrow:
+            case { Key: ConsoleKey.DownArrow }:
                 _selected++;
                 if (_selected >= SymbolsLength)
                     _selected = 0;
                 break;
-            case ConsoleKey.Spacebar:
+            case { Key: ConsoleKey.Spacebar }:
                 LetterMode++;
                 if ((int)LetterMode > 3)
                     LetterMode = LetterMode.Unknown;
                 break;
-            case ConsoleKey.Enter when LetterMode != LetterMode.Unknown:
+            case { Key: ConsoleKey.Enter } when LetterMode != LetterMode.Unknown:
                 StartWith = Current?.Next is null ? "" : (StartWith + Selected);
                 Current = Next;
+                break;
+            case { KeyChar: var c } when _symbols.Contains(c):
+                Selected = c;
+                break;
+            case { KeyChar: var c } when _symbols.Contains(char.ToUpperInvariant(c)):
+                Selected = char.ToUpperInvariant(c);
                 break;
         }
     }

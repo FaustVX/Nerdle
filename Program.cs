@@ -33,7 +33,7 @@ do
 {
     AnsiConsole.Clear();
     AnsiConsole.Write(table);
-    Letter.Current!.ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key);
+    Letter.Current!.ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault());
     if (Letter.Current is {} letter)
         letter.Symbols = Nerdle.GetNextSymbol(Letter.StartWith, candidates);
     else
