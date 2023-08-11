@@ -65,7 +65,7 @@ partial class Letter: IRenderable
         yield return new(Selected.ToString(), new(background: background, foreground: foreground, decoration: IsLetterSelected ? Decoration.Underline : null));
     }
 
-    public void ProcessKey(ConsoleKeyInfo key)
+    public bool ProcessKey(ConsoleKeyInfo key)
     {
         switch (key)
         {
@@ -73,27 +73,29 @@ partial class Letter: IRenderable
                 if (_selected <= 0)
                     _selected = SymbolsLength;
                 _selected--;
-                break;
+                return false;
             case { Key: ConsoleKey.DownArrow }:
                 _selected++;
                 if (_selected >= SymbolsLength)
                     _selected = 0;
-                break;
+                return false;
             case { Key: ConsoleKey.Spacebar }:
                 LetterMode++;
                 if ((int)LetterMode > 3)
                     LetterMode = LetterMode.Unknown;
-                break;
+                return false;
             case { Key: ConsoleKey.Enter } when LetterMode != LetterMode.Unknown:
                 StartWith = Current?.Next is null ? "" : (StartWith + Selected);
                 Current = Next;
-                break;
+                return true;
             case { KeyChar: var c } when _symbols.Contains(c):
                 Selected = c;
-                break;
+                return false;
             case { KeyChar: var c } when _symbols.Contains(char.ToUpperInvariant(c)):
                 Selected = char.ToUpperInvariant(c);
-                break;
+                return false;
+            default:
+                return false;
         }
     }
 }

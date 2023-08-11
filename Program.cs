@@ -33,9 +33,12 @@ do
 {
     AnsiConsole.Clear();
     AnsiConsole.Write(table);
-    Letter.Current!.ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault());
+    var letterChanged = Letter.Current!.ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault());
     if (Letter.Current is {} letter)
-        letter.Symbols = Nerdle.GetNextSymbol(Letter.StartWith, candidates);
+    {
+        if (letterChanged)
+            letter.Symbols = Nerdle.GetNextSymbol(Letter.StartWith, candidates);
+    }
     else
     {
         (var row, candidates) = AddRow(firsts, slotsLength, symbols);
