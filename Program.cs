@@ -29,14 +29,14 @@ static IEnumerable<string> GenerateCandidates(int length, IEnumerable<char> symb
                 yield return candidate + symbol;
 }
 
+AnsiConsole.Clear();
+AnsiConsole.Write(table);
 do
 {
-    AnsiConsole.Clear();
-    AnsiConsole.Write(table);
     var letterChanged = Letter.Current!.ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault());
     if (Letter.Current is {} letter)
     {
-        if (letterChanged)
+        if (letterChanged is ProcessKeyReturn.NextLetter)
             letter.Symbols = Nerdle.GetNextSymbol(Letter.StartWith, candidates);
     }
     else
@@ -44,6 +44,11 @@ do
         (var row, candidates) = AddRow(firsts, slotsLength, symbols);
         if (candidates.Length > 1)
             table.AddRow(row);
+    }
+    if (letterChanged is not ProcessKeyReturn.NothingHappened)
+    {
+        AnsiConsole.Clear();
+        AnsiConsole.Write(table);
     }
 } while (Letter.Current is not null);
 AnsiConsole.Clear();

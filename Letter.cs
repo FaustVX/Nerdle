@@ -65,7 +65,7 @@ partial class Letter: IRenderable
         yield return new(Selected.ToString(), new(background: background, foreground: foreground, decoration: IsLetterSelected ? Decoration.Underline : null));
     }
 
-    public bool ProcessKey(ConsoleKeyInfo key)
+    public ProcessKeyReturn ProcessKey(ConsoleKeyInfo key)
     {
         switch (key)
         {
@@ -73,29 +73,29 @@ partial class Letter: IRenderable
                 if (_selected <= 0)
                     _selected = SymbolsLength;
                 _selected--;
-                return false;
+                return ProcessKeyReturn.Updated;
             case { Key: ConsoleKey.DownArrow }:
                 _selected++;
                 if (_selected >= SymbolsLength)
                     _selected = 0;
-                return false;
+                return ProcessKeyReturn.Updated;
             case { Key: ConsoleKey.Spacebar }:
                 LetterMode++;
                 if ((int)LetterMode > 3)
                     LetterMode = LetterMode.Unknown;
-                return false;
+                return ProcessKeyReturn.Updated;
             case { Key: ConsoleKey.Enter } when LetterMode != LetterMode.Unknown:
                 StartWith = Current?.Next is null ? "" : (StartWith + Selected);
                 Current = Next;
-                return true;
+                return ProcessKeyReturn.NextLetter;
             case { KeyChar: var c } when _symbols.Contains(c):
                 Selected = c;
-                return false;
+                return ProcessKeyReturn.Updated;
             case { KeyChar: var c } when _symbols.Contains(char.ToUpperInvariant(c)):
                 Selected = char.ToUpperInvariant(c);
-                return false;
+                return ProcessKeyReturn.Updated;
             default:
-                return false;
+                return ProcessKeyReturn.NothingHappened;
         }
     }
 }
@@ -106,4 +106,11 @@ enum LetterMode
     CorrectPlace,
     InvalidePlace,
     InvalideLetter,
+}
+
+public enum ProcessKeyReturn
+{
+    NothingHappened = 0,
+    NextLetter,
+    Updated,
 }
