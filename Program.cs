@@ -1,4 +1,4 @@
-﻿using Spectre.Console;
+using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 //     nerdle lenght ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
@@ -69,18 +69,18 @@ static IEnumerable<Letter> CreateLetters(string[] candidates, int length, IList<
 static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> firsts, int length, ISet<char> symbols)
 {
     var words = firsts
-        .Select(static l => l.SelectAll(static l => l.Next!, static l => l != null))
+        .Select(static l => l.SelectAll(static l => l.Next!, static l => l != null).ToArray())
         .ToArray();
-    var letters = words
+    var columns = words
         .Transpose()
         .Select(static l => l.ToArray())
         .ToArray();
-    var slots = letters
-        .SelectMany(static l =>
+    var slots = columns
+        .SelectMany(static column =>
         {
-            if (l.FirstOrDefault(static l => l.LetterMode == LetterMode.CorrectPlace) is { Selected: var c })
+            if (column.FirstOrDefault(static l => l.LetterMode == LetterMode.CorrectPlace) is { Selected: var c })
                 return new string[2] { c.ToString(), " " };
-            return new string[2] { "null", string.Concat(l.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected)) };
+            return new string[2] { "null", string.Concat(column.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected)) };
         })
         .ToArray();
     var symbolsQty = symbols
