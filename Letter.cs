@@ -82,7 +82,7 @@ partial class Letter: IRenderable
             case { Key: ConsoleKey.Spacebar }:
                 LetterMode++;
                 if ((int)LetterMode > 3)
-                    LetterMode = LetterMode.Unknown;
+                    LetterMode = LetterMode.CorrectPlace;
                 return ProcessKeyReturn.Updated;
             case { Key: ConsoleKey.Enter } when LetterMode != LetterMode.Unknown:
                 StartWith = Current?.Next is null ? "" : (StartWith + Selected);
