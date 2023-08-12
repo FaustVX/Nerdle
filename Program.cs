@@ -77,11 +77,11 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
         .Select(static l => l.ToArray())
         .ToArray();
     var slots = columns
-        .SelectMany(static column =>
+        .Select(static column =>
         {
             if (column.FirstOrDefault(static l => l.LetterMode == LetterMode.CorrectPlace) is { Selected: var c })
-                return new string[2] { c.ToString(), " " };
-            return new string[2] { "null", string.Concat(column.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected)) };
+                return (new char?(c), Ext.Space);
+            return (new char?(), column.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected).ToArray());
         })
         .ToArray();
     var symbolsQty = symbols
@@ -100,7 +100,7 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
 
     var candidates = new Nerdle()
     {
-        Slot = CreateSlots(slots),
+        Slot = slots,
         Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
     }
     .GetAllLines(printMaxCombinatory: false, steps: 0)
@@ -118,13 +118,4 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
     AnsiConsole.Console.Input.ReadKey(intercept: true);
 
     return (CreateLetters(candidates, length, firsts), candidates);
-
-    static (char?, char[]?)[] CreateSlots(IReadOnlyList<string> input)
-    {
-        var size = input.Count / 2;
-        var slots = new (char?, char[]?)[size];
-        for (var i = 0; i < size; i++)
-            slots[i] = (input[i * 2] is "null" ? null : input[i * 2][0], string.IsNullOrWhiteSpace(input[i * 2 + 1]) ? Array.Empty<char>() : input[i * 2 + 1].ToCharArray());
-        return slots;
-    }
 }

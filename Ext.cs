@@ -83,4 +83,6 @@ public static class Ext
     public static TEnum GetItem<TEnum>(this Random random)
     where TEnum : struct, Enum
     => random.GetItem(Enum.GetValues<TEnum>());
+
+    public readonly static char[]? Space = { ' ' };
 }
