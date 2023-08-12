@@ -1,3 +1,4 @@
+﻿using System.Runtime.InteropServices;
 using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -84,13 +85,23 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
         })
         .ToArray();
     var symbolsQty = symbols
-        .Select(static s => (s, new int?(), 0))
-        .ToArray();
+        .ToDictionary(static s => s, static s => (qty: new int?(), min: 0));
+    foreach (var word in words)
+        foreach (var (c, letters) in word.GroupBy(static l => l.Selected).ToDictionary(static g => g.Key, static g => g.OrderBy(static l => l.LetterMode).ToArray()))
+            if (letters[0].LetterMode is LetterMode.InvalideLetter)
+                CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = 0;
+            else if (letters[^1].LetterMode is LetterMode.InvalideLetter)
+                CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = letters.Count(static l => l.LetterMode is not LetterMode.InvalideLetter);
+            else
+            {
+                ref var symbol = ref CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c);
+                symbol.min = Math.Max(letters.Length, symbol.min);
+            }
 
     var candidates = new Nerdle()
     {
         Slot = CreateSlots(slots),
-        Symbols = symbolsQty,
+        Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
     }
     .GetAllLines(printMaxCombinatory: false, steps: 0)
     .ToArray();
@@ -100,7 +111,7 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
     symbolsGrid.AddColumn("Symbol");
     symbolsGrid.AddColumn("Quantity");
     symbolsGrid.AddColumn("Minimum");
-    foreach (var (c, qty, min) in symbolsQty)
+    foreach (var (c, (qty, min)) in symbolsQty)
         symbolsGrid.AddRow(c.ToString(), qty?.ToString() ?? "?", min.ToString());
 
     AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new("Symbols"), Expand = true })));
