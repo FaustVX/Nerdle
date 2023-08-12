@@ -39,11 +39,15 @@ partial class Letter: IRenderable
             if (_symbols is null)
             {
                 _symbols = value?.ToArray() ?? Array.Empty<char>();
+                if (SymbolsLength <= 1)
+                    LetterMode = LetterMode.CorrectPlace;
                 return;
             }
             var selected = Selected;
             _symbols = value?.ToArray() ?? Array.Empty<char>();
             (_selected, LetterMode) = _symbols.AsSpan().IndexOf(selected) is >= 0 and var i ? (i, LetterMode) : (0, LetterMode.Unknown);
+            if (SymbolsLength <= 1)
+                LetterMode = LetterMode.CorrectPlace;
         }
     }
 
@@ -70,11 +74,15 @@ partial class Letter: IRenderable
         switch (key)
         {
             case { Key: ConsoleKey.UpArrow }:
+                if (SymbolsLength <= 1)
+                    return ProcessKeyReturn.NothingHappened;
                 if (_selected <= 0)
                     _selected = SymbolsLength;
                 _selected--;
                 return ProcessKeyReturn.Updated;
             case { Key: ConsoleKey.DownArrow }:
+                if (SymbolsLength <= 1)
+                    return ProcessKeyReturn.NothingHappened;
                 _selected++;
                 if (_selected >= SymbolsLength)
                     _selected = 0;
