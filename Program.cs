@@ -106,16 +106,49 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
     .GetAllLines(printMaxCombinatory: false, steps: 0)
     .ToArray();
 
-    var outputLayout = new Layout("Output", new Panel(new Rows(candidates.Select(static n => new Text(n)))) { Header = new("Output"), Expand = true });
-    var symbolsGrid = new Table() { Expand = true };
-    symbolsGrid.AddColumn("Symbol");
-    symbolsGrid.AddColumn("Quantity");
-    symbolsGrid.AddColumn("Minimum");
-    foreach (var (c, (qty, min)) in symbolsQty)
-        symbolsGrid.AddRow(c.ToString(), qty?.ToString() ?? "?", min.ToString());
+    File.WriteAllLines("output.txt", candidates);
 
-    AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new("Symbols"), Expand = true })));
-    AnsiConsole.Console.Input.ReadKey(intercept: true);
+    var height = 0;
+    var offset = 0;
+    do
+    {
+        height = AnsiConsole.Console.Profile.Height - 3;
+        var outputLayout = new Layout("Output", new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(n)))) { Header = new($"Output ({candidates.Length})"), Expand = true });
+        var symbolsGrid = new Table() { Expand = true };
+        symbolsGrid.AddColumn("Symbol");
+        symbolsGrid.AddColumn("Quantity");
+        symbolsGrid.AddColumn("Minimum");
+        foreach (var (c, (qty, min)) in symbolsQty)
+            symbolsGrid.AddRow(c.ToString(), qty?.ToString() ?? "?", min.ToString());
+
+        AnsiConsole.Clear();
+        AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new($"Symbols ({symbolsGrid.Rows.Count})"), Expand = true })));
+    } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, candidates.Length - height, height - 1));
 
     return (CreateLetters(candidates, length, firsts), candidates);
+
+    static bool ProcessKey(ConsoleKey key, ref int offset, int length, int move)
+    {
+        if (length < 0)
+            length = 0;
+        if (move < 1)
+            move = 1;
+        switch (key)
+        {
+            case ConsoleKey.Enter or ConsoleKey.Escape:
+                return false;
+            case ConsoleKey.UpArrow:
+                offset -= move;
+                if (offset <= 0)
+                    offset = 0;
+                return true;
+            case ConsoleKey.DownArrow:
+                offset += move;
+                if (offset >= length)
+                    offset = length - 1;
+                return true;
+            default:
+                return true;
+        }
+    }
 }
