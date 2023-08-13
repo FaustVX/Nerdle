@@ -35,6 +35,11 @@ AnsiConsole.Write(table);
 do
 {
     var letterChanged = Letter.Current!.ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault());
+    if (letterChanged is ProcessKeyReturn.ResetWord)
+    {
+        Letter.Current = firsts[^1];
+        continue;
+    }
     if (Letter.Current is {} letter)
     {
         if (letterChanged is ProcessKeyReturn.NextLetter)

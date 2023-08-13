@@ -17,7 +17,7 @@ partial class Letter: IRenderable
         get => _symbols[_selected];
         set => _selected = _symbols.AsSpan().IndexOf(value) switch
             {
-                < 0 => throw new ArgumentOutOfRangeException(nameof(Selected), value.ToString(), null),
+                < 0 => 0,
                 var i => i,
             };
     }
@@ -73,6 +73,9 @@ partial class Letter: IRenderable
     {
         switch (key)
         {
+            case { Key: ConsoleKey.Backspace }:
+                StartWith = "";
+                return ProcessKeyReturn.ResetWord;
             case { Key: ConsoleKey.UpArrow }:
                 if (SymbolsLength <= 1)
                     return ProcessKeyReturn.NothingHappened;
@@ -121,4 +124,5 @@ public enum ProcessKeyReturn
     NothingHappened = 0,
     NextLetter,
     Updated,
+    ResetWord,
 }
