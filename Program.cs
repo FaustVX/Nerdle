@@ -14,7 +14,7 @@ for (var s = 1; s <= slotsLength; s++)
 
 var firsts = new List<Letter>();
 
-table.AddRow(CreateLetters(symbols, slotsLength, firsts));
+table.AddRow(CreateLetters(symbols, slotsLength, firsts, Enumerable.Repeat(symbols, slotsLength).ToArray()));
 
 static IEnumerable<string> GenerateCandidates(int length, IEnumerable<char> symbols)
 {
@@ -51,12 +51,12 @@ do
 AnsiConsole.Clear();
 AnsiConsole.Write(table);
 
-static IEnumerable<Letter> CreateLetters(ISet<char> symbols, int length, IList<Letter> firsts)
+static IEnumerable<Letter> CreateLetters(ISet<char> symbols, int length, IList<Letter> firsts, ISet<char>[] valid)
 {
     (var previous, Letter.Current) = (Letter.Current, null);
     return Enumerable.Repeat(symbols, length).Select((s, i) =>
     {
-        previous = new Letter() { Previous = previous, Symbols = s };
+        previous = new Letter() { Previous = previous, Symbols = s, ValidSymbols = valid[i] };
         if (Letter.Current is null)
             firsts.Add(Letter.Current = previous);
         return previous;
@@ -65,7 +65,7 @@ static IEnumerable<Letter> CreateLetters(ISet<char> symbols, int length, IList<L
 
 static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, ISet<char> symbols)
 {
-    var (symbolsQty, candidates) = AnsiConsole.Progress()
+    var (symbolsQty, candidates, valid) = AnsiConsole.Progress()
     .Columns(new ProgressColumn[] 
     {
         new SpinnerColumn(),
@@ -127,11 +127,11 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
 
             File.WriteAllLines("output.txt", array);
 
-            return (symbolsQty, array);
+            return (symbolsQty, array, slots);
         }
         catch (CancelException)
         {
-            return (symbolsQty, (string[]?)null);
+            return (symbolsQty, (string[]?)null, slots);
         }
     });
 
@@ -169,7 +169,12 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         }
     } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, (candidates?.Length ?? 0) - height, height - 1));
 
-    return (CreateLetters(symbols, length, firsts), candidates?.Length ?? -1);
+    return (CreateLetters(symbols, length, firsts, valid.Select(s => s switch
+    {
+        (char c, _) => Enumerable.Repeat(c, 1).ToHashSet(),
+        (_, char[] cs and not [' ']) => symbols.Except(cs).ToHashSet(),
+        _ => new(symbols),
+    }).ToArray()), candidates?.Length ?? -1);
 
     static bool ProcessKey(ConsoleKey key, ref int offset, int length, int move)
     {

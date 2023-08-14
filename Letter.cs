@@ -22,6 +22,18 @@ partial class Letter: IRenderable
             };
     }
 
+    private readonly ISet<char> validSymbols = default!;
+    public required ISet<char> ValidSymbols
+    {
+        get => validSymbols;
+        init
+        {
+            validSymbols = value;
+            if (ValidSymbols.Count == 1)
+                (Selected, LetterMode) = (ValidSymbols.First(), LetterMode.CorrectPlace);
+        }
+    }
+
     public LetterMode LetterMode { get; set; }
     public required Letter? Previous
     {
@@ -66,7 +78,10 @@ partial class Letter: IRenderable
             LetterMode.InvalideLetter => (Color.Grey, Color.Black),
             _ => throw new UnreachableException(),
         };
-        yield return new(Selected.ToString(), new(background: background, foreground: foreground, decoration: IsLetterSelected ? Decoration.Underline : null));
+        var decoration = IsLetterSelected ? Decoration.Italic | Decoration.Underline | Decoration.SlowBlink : default;
+        if (!ValidSymbols.Contains(Selected))
+            decoration |= Decoration.Strikethrough;
+        yield return new(Selected.ToString(), new(background: background, foreground: foreground, decoration: decoration));
     }
 
     public ProcessKeyReturn ProcessKey(ConsoleKeyInfo key)
