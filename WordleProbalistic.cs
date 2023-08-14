@@ -1,4 +1,4 @@
-class NerdleProbalistic : Nerdle
+class WordleProbalistic : Wordle
 {
     private readonly float[,] _probalities = default!;
     private readonly Dictionary<char, int> _indices = default!;

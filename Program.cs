@@ -8,7 +8,7 @@ using Optional.Unsafe;
 
 var slotsLength = int.Parse(args[0]);
 var symbols = args[1].ToHashSet();
-var probabilities = args is [_, _, var path] ? NerdleProbalistic.CreateMarkovChain(File.ReadAllLines(path).ToHashSet()) : null;
+var probabilities = args is [_, _, var path] ? WordleProbalistic.CreateMarkovChain(File.ReadAllLines(path).ToHashSet()) : null;
 
 var table = new Table();
 
@@ -106,12 +106,12 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
                 }
 
         var (candidates, qty) = probabilities is null
-        ? new Nerdle()
+        ? new Wordle()
             {
                 Slot = slots,
                 Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
             }.GetAllLines()
-        : new NerdleProbalistic()
+        : new WordleProbalistic()
             {
                 Slot = slots,
                 Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
