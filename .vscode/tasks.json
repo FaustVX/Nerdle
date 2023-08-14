@@ -42,9 +42,17 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "run 1",
-            "command": "dotnet run --configuration Debug",
-            "type": "shell",
+            "label": "run",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--configuration",
+                "${input:configuration}",
+                "--",
+                "${input:qty}",
+                "${input:symbols}",
+            ],
+            "type": "process",
             "problemMatcher": "$msCompile",
             "presentation": {
                 "echo": true,
@@ -53,20 +61,42 @@
                 "panel": "shared",
                 "showReuseMessage": true,
                 "clear": false,
+            },
+            "runOptions": {
+                "instanceLimit": 2
+            }
+        },
+    ],
+    "inputs": [
+        {
+            "id": "qty",
+            "type": "command",
+            "command": "memento.promptString",
+            "args": {
+                "id": "qty",
+                "description": "Word Length",
+                "default": "5",
             }
         },
         {
-            "label": "run 2",
-            "command": "dotnet run --configuration Release > output.txt; code --reuse-window output.txt",
-            "type": "shell",
-            "problemMatcher": "$msCompile",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false,
+            "id": "symbols",
+            "type": "command",
+            "command": "memento.pickString",
+            "args": {
+                "id": "symbols",
+                "description": "Available symbols",
+                "options": ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "1234567890+-*/=", "1234567890+-*/()²³="],
+            }
+        },
+        {
+            "id": "configuration",
+            "type": "command",
+            "command": "memento.pickString",
+            "args": {
+                "id": "configuration",
+                "description": "Build mode",
+                "options": ["Debug", "Release"],
+                "default": "Release",
             }
         },
     ]

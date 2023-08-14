@@ -5,20 +5,69 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": ".NET Core Launch",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/bin/Debug/net8.0/Nerdle.dll",
-            "args": [],
+            "args": [
+                "${input:qty}",
+                "${input:symbols}",
+            ],
             "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Launch (prompt symbols)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/net8.0/Nerdle.dll",
+            "args": [
+                "${input:qty}",
+                "${input:symbols_prompt}",
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
             "stopAtEntry": false
         },
         {
             "name": ".NET Core Attach",
             "type": "coreclr",
-            "request": "attach"
+            "request": "attach",
+            "processName": "Nerdle",
         }
+    ],
+    "inputs": [
+        {
+            "id": "qty",
+            "type": "command",
+            "command": "memento.promptString",
+            "args": {
+                "id": "qty",
+                "description": "Word Length",
+                "default": "5",
+            }
+        },
+        {
+            "id": "symbols",
+            "type": "command",
+            "command": "memento.pickString",
+            "args": {
+                "id": "symbols",
+                "description": "Available symbols",
+                "options": ["ABCDE", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "1234567890+-*/=", "1234567890+-*/()²³="],
+            }
+        },
+        {
+            "id": "symbols_prompt",
+            "type": "command",
+            "command": "memento.promptString",
+            "args": {
+                "id": "symbols",
+                "description": "Available symbols",
+            }
+        },
     ]
 }

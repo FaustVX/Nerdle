@@ -1,20 +1,20 @@
 class Nerdle
 {
     public required (char? mandatory, char[]? forbiden)[] Slot { get; init; }
-    private readonly (char symbol, int qty, int min)[] _symbols = default!;
+    private readonly (char symbol, int? qty, int min)[] _symbols = default!;
     private readonly bool _isMath = default;
-    public (char symbol, int qty, int min)[] InitialSymbols { get; private init; } = default!;
-    public required (char symbol, int qty, int min)[] Symbols
+    public (char symbol, int? qty, int min)[] InitialSymbols { get; private init; } = default!;
+    public required (char symbol, int? qty, int min)[] Symbols
     {
         get => _symbols;
         init => (InitialSymbols, _isMath, _symbols) = (value, value.Any(static s => s.symbol is '='), value
             .Where(static s => s is (_, > 0, _) or (_, _, >= 0))
-            .Where(s => s.qty >= 0)
-            .Where(s => s.qty == 0 || (Slot.Count(slot => slot.mandatory == s.symbol) is var qty && qty != s.qty))
+            .Where(s => s.qty is > 0 or null)
+            .Where(s => s.qty is null || (Slot.Count(slot => slot.mandatory == s.symbol) is var qty && qty != s.qty))
             .ToArray());
     }
 
-    public IEnumerable<string> GetAllLines(bool printMaxCombinatory = false, int steps = 100)
+    public (IEnumerable<string> candidates, long maxQuantity) GetAllLines()
     {
         // System.Diagnostics.Debugger.Launch();
         var symbols = Enumerable.Repeat((Slot, Symbols), Slot.Length)
@@ -27,23 +27,10 @@ class Nerdle
             .Select(Enumerable.ToArray)
             .ToArray();
 
-        var combinatory = 1L;
-        if (printMaxCombinatory)
-            checked
-            {
-                for (var i = 0; i < symbols.Length; i++)
-                {
-#if DEBUG
-                    Console.WriteLine($"[{i}]: {symbols[i].Length}");
-#endif
-                    combinatory *= symbols[i].Length;
-                }
-#if DEBUG
-                Console.WriteLine($"Max combinatory: {combinatory}");
-#endif
-            }
+        var combinatory = symbols.Aggregate(1L, static (acc, s) => checked(acc *= s.Length));
 
-        return Process(0, new char[Slot.Length], symbols).ReportProgress(combinatory, steps).Where(GetValidator(symbols));
+        return (Process(0, new char[Slot.Length], symbols)
+        .Where(GetValidator(symbols)), combinatory);
     }
 
     protected virtual Func<string, bool> GetValidator(char[][] symbols)
@@ -127,19 +114,19 @@ class Nerdle
         return true;
     }
 
-    static bool CheckSymbolQty(string line, (char symbol, int qty, int min)[] symbols)
+    static bool CheckSymbolQty(string line, (char symbol, int? qty, int min)[] symbols)
     {
         foreach (var symbol in symbols)
             switch (symbol)
             {
-                case (_, 0, 0):
+                case (_, null, <= 0):
                     break;
-                case (_, <= 0, var min):
-                    if (line.Count(symbol.symbol.Equals) < min)
+                case (_, int qty, _):
+                    if (line.Count(symbol.symbol.Equals) != qty)
                         return false;
                     break;
-                case (_, var qty, _):
-                    if (line.Count(symbol.symbol.Equals) != qty)
+                case (_, _, int min):
+                    if (line.Count(symbol.symbol.Equals) < min)
                         return false;
                     break;
             }
