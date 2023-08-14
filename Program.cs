@@ -39,8 +39,8 @@ do
     }
     else if (letterChanged is ProcessKeyReturn.NextLetter && Letter.Current is null)
     {
-        var (row, candidates) = AddRow(firsts, slotsLength, symbols);
-        if (candidates.Length > 1)
+        var (row, qty) = AddRow(firsts, slotsLength, symbols);
+        if (qty != 0)
             table.AddRow(row);
     }
     if (letterChanged is not ProcessKeyReturn.NothingHappened)
@@ -64,7 +64,7 @@ static IEnumerable<Letter> CreateLetters(ISet<char> symbols, int length, IList<L
     });
 }
 
-static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> firsts, int length, ISet<char> symbols)
+static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, ISet<char> symbols)
 {
     var (symbolsQty, candidates) = AnsiConsole.Progress()
     .Columns(new ProgressColumn[] 
@@ -115,12 +115,25 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
         }
         .GetAllLines();
         var task = ctx.AddTask("Calculating", true, qty);
-        candidates = qty is > 100_000 ? candidates.ReportProgress(qty, (int)(qty / 1000), p => task.Value = p) : candidates;
-        var array = candidates.ToArray();
+        candidates = qty is > 100_000
+            ? candidates.ReportProgress(qty, (int)(qty / 1000), p =>
+                {
+                    task.Value = p;
+                    return !(AnsiConsole.Console.Input.IsKeyAvailable() && AnsiConsole.Console.Input.ReadKey(intercept: true) is { Key: ConsoleKey.Escape });
+                })
+            : candidates;
+        try
+        {
+            var array = candidates.ToArray();
 
-        File.WriteAllLines("output.txt", array);
+            File.WriteAllLines("output.txt", array);
 
-        return (symbolsQty, array);
+            return (symbolsQty, array);
+        }
+        catch (CancelException)
+        {
+            return (symbolsQty, (string[]?)null);
+        }
     });
 
     var height = 0;
@@ -128,7 +141,10 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
     do
     {
         height = AnsiConsole.Console.Profile.Height - 3;
-        var outputLayout = new Layout("Output", new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(n)))) { Header = new($"Output ({offset} / {candidates.Length})"), Expand = true });
+        var panel = candidates is [] or null
+            ? new Panel("") { Header = new($"Output [red](cancelled)[/]"), Expand = true }
+            : new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(n)))) { Header = new($"Output ({offset} / {candidates.Length})"), Expand = true };
+        var outputLayout = new Layout("Output", panel);
         var symbolsGrid = new Table() { Expand = true };
         symbolsGrid.AddColumn("Symbol");
         symbolsGrid.AddColumn("Quantity");
@@ -152,9 +168,9 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
             yield return new(kvp.Value.qty?.ToString() ?? "?");
             yield return new(kvp.Value.min.ToString());
         }
-    } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, candidates.Length - height, height - 1));
+    } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, (candidates?.Length ?? 0) - height, height - 1));
 
-    return (CreateLetters(symbols, length, firsts), candidates);
+    return (CreateLetters(symbols, length, firsts), candidates?.Length ?? -1);
 
     static bool ProcessKey(ConsoleKey key, ref int offset, int length, int move)
     {

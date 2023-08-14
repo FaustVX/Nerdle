@@ -1,26 +1,29 @@
 using System.Diagnostics;
 
+public class CancelException : Exception
+{ }
+
 [DebuggerStepThrough]
 public static class Ext
 {
     public static Func<TIn, TResult> Then<TIn, TOut, TResult>(this Func<TIn, TOut> func, Func<TIn, TOut, TResult> then)
     => i => then(i, func(i));
 
-    public static IEnumerable<T> ReportProgress<T>(this IEnumerable<T> items, long max, int steps, Action<long> progress)
+    public static IEnumerable<T> ReportProgress<T>(this IEnumerable<T> items, long max, int steps, Func<long, bool> progress)
     {
         if (steps <= 0)
             return items;
         return Report(items, max, steps, progress);
 
-        static IEnumerable<T> Report(IEnumerable<T> items, long max, int steps, Action<long> progress)
+        static IEnumerable<T> Report(IEnumerable<T> items, long max, int steps, Func<long, bool> progress)
         {
             var percent = Math.Max(max / steps, 1);
             using var enumerator = items.GetEnumerator();
 
             for (var i = 0L; enumerator.MoveNext(); i++)
             {
-                if (i % percent == 0)
-                    progress(i);
+                if (i % percent == 0 && !progress(i))
+                    throw new CancelException();
                 yield return enumerator.Current;
             }
             progress(max);
