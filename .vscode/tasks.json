@@ -43,8 +43,16 @@
         },
         {
             "label": "run",
-            "command": "dotnet run --configuration ${input:configuration} -- ${input:qty} ${input:symbols}",
-            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--configuration",
+                "${input:configuration}",
+                "--",
+                "${input:qty}",
+                "${input:symbols}",
+            ],
+            "type": "process",
             "problemMatcher": "$msCompile",
             "presentation": {
                 "echo": true,
@@ -54,6 +62,9 @@
                 "showReuseMessage": true,
                 "clear": false,
             },
+            "runOptions": {
+                "instanceLimit": 2
+            }
         },
     ],
     "inputs": [
@@ -73,8 +84,8 @@
             "command": "memento.pickString",
             "args": {
                 "id": "symbols",
-                "description": "Build mode",
-                "options": ["ABCDE", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "1234567890+-*/=", "1234567890+-*/()²³="],
+                "description": "Available symbols",
+                "options": ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "1234567890+-*/=", "1234567890+-*/()²³="],
             }
         },
         {
