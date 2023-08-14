@@ -12,12 +12,9 @@ var table = new Table();
 for (var s = 1; s <= slotsLength; s++)
     table.AddColumn(new TableColumn(s.ToString()) { Alignment = Justify.Center });
 
-var candidates = GenerateCandidates(slotsLength, symbols)
-    .ToArray();
-
 var firsts = new List<Letter>();
 
-table.AddRow(CreateLetters(candidates, slotsLength, firsts));
+table.AddRow(CreateLetters(symbols, slotsLength, firsts));
 
 static IEnumerable<string> GenerateCandidates(int length, IEnumerable<char> symbols)
 {
@@ -40,14 +37,9 @@ do
         Letter.Current = firsts[^1];
         continue;
     }
-    if (Letter.Current is {} letter)
+    else if (letterChanged is ProcessKeyReturn.NextLetter && Letter.Current is null)
     {
-        if (letterChanged is ProcessKeyReturn.NextLetter)
-            letter.Symbols = Nerdle.GetNextSymbol(Letter.StartWith, candidates);
-    }
-    else
-    {
-        (var row, candidates) = AddRow(firsts, slotsLength, symbols);
+        var (row, candidates) = AddRow(firsts, slotsLength, symbols);
         if (candidates.Length > 1)
             table.AddRow(row);
     }
@@ -60,12 +52,12 @@ do
 AnsiConsole.Clear();
 AnsiConsole.Write(table);
 
-static IEnumerable<Letter> CreateLetters(string[] candidates, int length, IList<Letter> firsts)
+static IEnumerable<Letter> CreateLetters(ISet<char> symbols, int length, IList<Letter> firsts)
 {
     (var previous, Letter.Current) = (Letter.Current, null);
-    return Enumerable.Repeat(candidates, length).Select((c, i) =>
+    return Enumerable.Repeat(symbols, length).Select((s, i) =>
     {
-        previous = new Letter() { Previous = previous, Symbols = candidates.Select(c => c[i]).ToHashSet() };
+        previous = new Letter() { Previous = previous, Symbols = s };
         if (Letter.Current is null)
             firsts.Add(Letter.Current = previous);
         return previous;
@@ -130,7 +122,7 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
         AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new($"Symbols ({symbolsGrid.Rows.Count})"), Expand = true })));
     } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, candidates.Length - height, height - 1));
 
-    return (CreateLetters(candidates, length, firsts), candidates);
+    return (CreateLetters(symbols, length, firsts), candidates);
 
     static bool ProcessKey(ConsoleKey key, ref int offset, int length, int move)
     {
