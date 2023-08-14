@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -46,7 +46,7 @@ do
 AnsiConsole.Clear();
 AnsiConsole.Write(table);
 
-static IEnumerable<Letter> CreateLetters(ISet<char> symbols, int length, IList<Letter> firsts, ISet<char>[] valid)
+static IEnumerable<Letter> CreateLetters(IReadOnlySet<char> symbols, int length, IList<Letter> firsts, IReadOnlySet<char>[] valid)
 {
     (var previous, Letter.Current) = (Letter.Current, null);
     return Enumerable.Repeat(symbols, length).Select((s, i) =>
@@ -58,7 +58,7 @@ static IEnumerable<Letter> CreateLetters(ISet<char> symbols, int length, IList<L
     });
 }
 
-static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, ISet<char> symbols)
+static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, IReadOnlySet<char> symbols)
 {
     var (symbolsQty, candidates, valid) = AnsiConsole.Progress()
     .Columns(new ProgressColumn[] 

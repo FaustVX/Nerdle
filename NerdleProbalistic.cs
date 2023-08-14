@@ -29,10 +29,10 @@ class NerdleProbalistic : Nerdle
         return true;
     }
 
-    public static float[,] CreateMarkovChain(ISet<string> lines)
+    public static float[,] CreateMarkovChain(IReadOnlySet<string> lines)
     => CreateMarkovChain(lines, lines.SelectMany(static w => w).ToHashSet().Order().ToHashSet());
 
-    public static float[,] CreateMarkovChain(ISet<string> lines, ISet<char> allowedLetters)
+    public static float[,] CreateMarkovChain(IReadOnlySet<string> lines, IReadOnlySet<char> allowedLetters)
     {
         var indices = allowedLetters.Select(static (c, i) => (c, i)).ToDictionary(static t => t.c, t => t.i);
         var count = new int[allowedLetters.Count, allowedLetters.Count];

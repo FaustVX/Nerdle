@@ -22,8 +22,8 @@ partial class Letter: IRenderable
         };
     }
 
-    private readonly ISet<char> validSymbols = default!;
-    public required ISet<char> ValidSymbols
+    private readonly IReadOnlySet<char> validSymbols = default!;
+    public required IReadOnlySet<char> ValidSymbols
     {
         get => validSymbols;
         init
@@ -44,7 +44,7 @@ partial class Letter: IRenderable
         }
     }
 
-    public required ISet<char>? Symbols
+    public required IReadOnlySet<char>? Symbols
     {
         set
         {
