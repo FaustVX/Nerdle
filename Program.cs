@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -110,7 +110,7 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
     do
     {
         height = AnsiConsole.Console.Profile.Height - 3;
-        var outputLayout = new Layout("Output", new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(n)))) { Header = new($"Output ({candidates.Length})"), Expand = true });
+        var outputLayout = new Layout("Output", new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(n)))) { Header = new($"Output ({offset} / {candidates.Length})"), Expand = true });
         var symbolsGrid = new Table() { Expand = true };
         symbolsGrid.AddColumn("Symbol");
         symbolsGrid.AddColumn("Quantity");
@@ -157,6 +157,8 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
                 offset += move;
                 if (offset >= length)
                     offset = length - 1;
+                if (offset < 0)
+                    offset = 0;
                 return true;
             default:
                 return true;
