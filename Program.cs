@@ -66,44 +66,51 @@ static IEnumerable<Letter> CreateLetters(ISet<char> symbols, int length, IList<L
 
 static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> firsts, int length, ISet<char> symbols)
 {
-    var words = firsts
-        .Select(static l => l.SelectAll(static l => l.Next!, static l => l != null).ToArray())
-        .ToArray();
-    var columns = words
-        .Transpose()
-        .Select(static l => l.ToArray())
-        .ToArray();
-    var slots = columns
-        .Select(static column =>
-        {
-            if (column.FirstOrDefault(static l => l.LetterMode == LetterMode.CorrectPlace) is { Selected: var c })
-                return (new char?(c), Ext.Space);
-            return (new char?(), column.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected).ToArray());
-        })
-        .ToArray();
-    var symbolsQty = symbols
-        .ToDictionary(static s => s, static s => (qty: new int?(), min: 0));
-    foreach (var word in words)
-        foreach (var (c, letters) in word.GroupBy(static l => l.Selected).ToDictionary(static g => g.Key, static g => g.OrderBy(static l => l.LetterMode).ToArray()))
-            if (letters[0].LetterMode is LetterMode.InvalideLetter)
-                CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = 0;
-            else if (letters[^1].LetterMode is LetterMode.InvalideLetter)
-                CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = letters.Count(static l => l.LetterMode is not LetterMode.InvalideLetter);
-            else
-            {
-                ref var symbol = ref CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c);
-                symbol.min = Math.Max(letters.Length, symbol.min);
-            }
-
-    var candidates = new Nerdle()
+    var (symbolsQty, candidates) = AnsiConsole.Status()
+    .Spinner(Spinner.Known.Star)
+    .Start("Calculating ...", ctx =>
     {
-        Slot = slots,
-        Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
-    }
-    .GetAllLines(printMaxCombinatory: false, steps: 0)
-    .ToArray();
+        var words = firsts
+            .Select(static l => l.SelectAll(static l => l.Next!, static l => l != null).ToArray())
+            .ToArray();
+        var columns = words
+            .Transpose()
+            .Select(static l => l.ToArray())
+            .ToArray();
+        var slots = columns
+            .Select(static column =>
+            {
+                if (column.FirstOrDefault(static l => l.LetterMode == LetterMode.CorrectPlace) is { Selected: var c })
+                    return (new char?(c), Ext.Space);
+                return (new char?(), column.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected).ToArray());
+            })
+            .ToArray();
+        var symbolsQty = symbols
+            .ToDictionary(static s => s, static s => (qty: new int?(), min: 0));
+        foreach (var word in words)
+            foreach (var (c, letters) in word.GroupBy(static l => l.Selected).ToDictionary(static g => g.Key, static g => g.OrderBy(static l => l.LetterMode).ToArray()))
+                if (letters[0].LetterMode is LetterMode.InvalideLetter)
+                    CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = 0;
+                else if (letters[^1].LetterMode is LetterMode.InvalideLetter)
+                    CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = letters.Count(static l => l.LetterMode is not LetterMode.InvalideLetter);
+                else
+                {
+                    ref var symbol = ref CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c);
+                    symbol.min = Math.Max(letters.Length, symbol.min);
+                }
 
-    File.WriteAllLines("output.txt", candidates);
+        var candidates = new Nerdle()
+        {
+            Slot = slots,
+            Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
+        }
+        .GetAllLines(printMaxCombinatory: false, steps: 0)
+        .ToArray();
+
+        File.WriteAllLines("output.txt", candidates);
+
+        return (symbolsQty, candidates);
+    });
 
     var height = 0;
     var offset = 0;
