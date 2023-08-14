@@ -66,9 +66,18 @@ static IEnumerable<Letter> CreateLetters(ISet<char> symbols, int length, IList<L
 
 static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> firsts, int length, ISet<char> symbols)
 {
-    var (symbolsQty, candidates) = AnsiConsole.Status()
-    .Spinner(Spinner.Known.Star)
-    .Start("Calculating ...", ctx =>
+    var (symbolsQty, candidates) = AnsiConsole.Progress()
+    .Columns(new ProgressColumn[] 
+    {
+        new SpinnerColumn(),
+        new TaskDescriptionColumn(),
+        new ProgressBarColumn(),
+        new PercentageColumn(),
+        new ProcessingSpeedColumn(),
+        new ElapsedTimeColumn(),
+        new RemainingTimeColumn(),
+    })
+    .Start(ctx =>
     {
         var words = firsts
             .Select(static l => l.SelectAll(static l => l.Next!, static l => l != null).ToArray())
@@ -99,17 +108,19 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
                     symbol.min = Math.Max(letters.Length, symbol.min);
                 }
 
-        var candidates = new Nerdle()
+        var (candidates, qty) = new Nerdle()
         {
             Slot = slots,
             Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
         }
-        .GetAllLines(printMaxCombinatory: false, steps: 0)
-        .ToArray();
+        .GetAllLines();
+        var task = ctx.AddTask("Calculating", true, qty);
+        candidates = qty is > 100_000 ? candidates.ReportProgress(qty, (int)(qty / 1000), p => task.Value = p) : candidates;
+        var array = candidates.ToArray();
 
-        File.WriteAllLines("output.txt", candidates);
+        File.WriteAllLines("output.txt", array);
 
-        return (symbolsQty, candidates);
+        return (symbolsQty, array);
     });
 
     var height = 0;

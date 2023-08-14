@@ -14,7 +14,7 @@ class Nerdle
             .ToArray());
     }
 
-    public IEnumerable<string> GetAllLines(bool printMaxCombinatory = false, int steps = 100, TextWriter? writer = null)
+    public (IEnumerable<string> candidates, long maxQuantity) GetAllLines()
     {
         // System.Diagnostics.Debugger.Launch();
         var symbols = Enumerable.Repeat((Slot, Symbols), Slot.Length)
@@ -27,28 +27,10 @@ class Nerdle
             .Select(Enumerable.ToArray)
             .ToArray();
 
-        var combinatory = 1L;
-        if (printMaxCombinatory)
-            checked
-            {
-                for (var i = 0; i < symbols.Length; i++)
-                {
-#if DEBUG
-                    Console.WriteLine($"[{i}]: {symbols[i].Length}");
-#endif
-                    combinatory *= symbols[i].Length;
-                }
-#if DEBUG
-                Console.WriteLine($"Max combinatory: {combinatory}");
-#endif
-            }
+        var combinatory = symbols.Aggregate(1L, static (acc, s) => checked(acc *= s.Length));
 
-        if (writer is null && steps != 0)
-            writer = Console.Error;
-
-        return Process(0, new char[Slot.Length], symbols)
-        .ReportProgress(combinatory, steps, writer)
-        .Where(GetValidator(symbols));
+        return (Process(0, new char[Slot.Length], symbols)
+        .Where(GetValidator(symbols)), combinatory);
     }
 
     protected virtual Func<string, bool> GetValidator(char[][] symbols)
