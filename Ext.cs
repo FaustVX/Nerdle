@@ -84,5 +84,11 @@ public static class Ext
     where TEnum : struct, Enum
     => random.GetItem(Enum.GetValues<TEnum>());
 
+    public static void Execute<TIn, TOut>(this IEnumerable<TIn> values, Func<TIn, TOut> func)
+    {
+        foreach (var item in values)
+            func(item);
+    }
+
     public readonly static char[]? Space = { ' ' };
 }

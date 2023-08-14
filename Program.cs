@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -115,11 +115,25 @@ static (IEnumerable<Letter> letters, string[] candidates) AddRow(IList<Letter> f
         symbolsGrid.AddColumn("Symbol");
         symbolsGrid.AddColumn("Quantity");
         symbolsGrid.AddColumn("Minimum");
-        foreach (var (c, (qty, min)) in symbolsQty)
-            symbolsGrid.AddRow(c.ToString(), qty?.ToString() ?? "?", min.ToString());
+        symbolsQty
+            .Select(GenerateRow)
+            .Execute(symbolsGrid.AddRow);
 
         AnsiConsole.Clear();
         AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new($"Symbols ({symbolsGrid.Rows.Count})"), Expand = true })));
+
+        static IEnumerable<Markup> GenerateRow(KeyValuePair<char, (int? qty, int min)> kvp)
+        {
+            yield return new(kvp.Key.ToString(), kvp.Value switch
+            {
+                (null, not 0) => new(Color.Yellow),
+                (0, _) => new(Color.Red),
+                (> 0, _) => new(Color.Green),
+                _ => null,
+            });
+            yield return new(kvp.Value.qty?.ToString() ?? "?");
+            yield return new(kvp.Value.min.ToString());
+        }
     } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, candidates.Length - height, height - 1));
 
     return (CreateLetters(symbols, length, firsts), candidates);
