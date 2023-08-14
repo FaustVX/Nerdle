@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Spectre.Console;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
@@ -6,6 +6,7 @@ using Spectre.Console;
 
 var slotsLength = int.Parse(args[0]);
 var symbols = args[1].ToHashSet();
+var probabilities = args is [_, _, var path] ? NerdleProbalistic.CreateMarkovChain(File.ReadAllLines(path).ToHashSet()) : null;
 
 var table = new Table();
 
@@ -35,7 +36,7 @@ do
     if (letterChanged is ProcessKeyReturn.ResetWord)
         Letter.Current = firsts[^1];
     else if (letterChanged is ProcessKeyReturn.NextLetter && Letter.Current is null)
-        if (AddRow(firsts, slotsLength, symbols) is (var row, not 0))
+        if (AddRow(firsts, slotsLength, symbols, probabilities) is (var row, not 0))
             table.AddRow(row);
     if (letterChanged is not ProcessKeyReturn.NothingHappened)
     {
@@ -58,7 +59,7 @@ static IEnumerable<Letter> CreateLetters(IReadOnlySet<char> symbols, int length,
     });
 }
 
-static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, IReadOnlySet<char> symbols)
+static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, IReadOnlySet<char> symbols, float[,]? probabilities)
 {
     var (symbolsQty, candidates, valid) = AnsiConsole.Progress()
     .Columns(new ProgressColumn[] 
@@ -102,12 +103,19 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
                     symbol.min = Math.Max(letters.Length, symbol.min);
                 }
 
-        var (candidates, qty) = new Nerdle()
-        {
-            Slot = slots,
-            Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
-        }
-        .GetAllLines();
+        var (candidates, qty) = probabilities is null
+        ? new Nerdle()
+            {
+                Slot = slots,
+                Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
+            }.GetAllLines()
+        : new NerdleProbalistic()
+            {
+                Slot = slots,
+                Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
+                Probalities = probabilities,
+                MinProb = float.Epsilon,
+            }.GetAllLines();
         var task = ctx.AddTask("Calculating", true, qty);
         candidates = qty is > 100_000
             ? candidates.ReportProgress(qty, (int)(qty / 1000), p =>

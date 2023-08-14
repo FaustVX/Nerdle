@@ -33,6 +33,21 @@
             "stopAtEntry": false
         },
         {
+            "name": ".NET Core Launch (dictionary)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/net8.0/Nerdle.dll",
+            "args": [
+                "${input:qty}",
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                "${input:pickSingleFile}",
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",
@@ -69,5 +84,14 @@
                 "description": "Available symbols",
             }
         },
+        {
+            "id": "pickSingleFile",
+            "type": "command",
+            "command": "launch-file-picker.pick",
+            "args": {
+                "filterExt": ".txt",
+                "canChangeFolder": true,
+            }
+         }
     ]
 }
