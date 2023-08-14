@@ -35,7 +35,6 @@ do
     if (letterChanged is ProcessKeyReturn.ResetWord)
     {
         Letter.Current = firsts[^1];
-        continue;
     }
     else if (letterChanged is ProcessKeyReturn.NextLetter && Letter.Current is null)
     {
