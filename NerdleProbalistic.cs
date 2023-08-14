@@ -18,10 +18,10 @@ class NerdleProbalistic : Nerdle
 
     public required float MinProb { get; init; }
 
-    protected override Func<string, bool> GetValidator(char[][] symbols)
+    protected override Func<char[], bool> GetValidator(char[][] symbols)
     => base.GetValidator(symbols).Then((input, b) => b && ProbalitiesFor(input));
 
-    bool ProbalitiesFor(string line)
+    bool ProbalitiesFor(char[] line)
     {
         for (var i = 1; i < line.Length; i++)
             if (_probalities[_indices[line[i - 1]], _indices[line[i]]] < MinProb)

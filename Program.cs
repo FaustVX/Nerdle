@@ -1,5 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Spectre.Console;
+using Optional;
+using Optional.Unsafe;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 //     nerdle lenght ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
@@ -85,8 +87,8 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
             .Select(static column =>
             {
                 if (column.FirstOrDefault(static l => l.LetterMode == LetterMode.CorrectPlace) is { Selected: var c })
-                    return (new char?(c), Ext.Space);
-                return (new char?(), column.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected).ToArray());
+                    return (c.Some(), Ext.Space);
+                return (Option.None<char>(), column.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected).ToArray());
             })
             .ToArray();
         var symbolsQty = symbols
@@ -127,12 +129,12 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         try
         {
             var array = candidates.ToArray();
-            File.WriteAllLines("output.txt", array);
+            File.WriteAllLines("output.txt", array.Select(static s => new string(s)));
             return (symbolsQty, array, slots);
         }
         catch (CancelException)
         {
-            return (symbolsQty, (string[]?)null, slots);
+            return (symbolsQty, (char[][]?)null, slots);
         }
     });
 
@@ -143,7 +145,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         height = AnsiConsole.Console.Profile.Height - 3;
         var panel = candidates is [] or null
             ? new Panel("") { Header = new($"Output [red](cancelled)[/]"), Expand = true }
-            : new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(n)))) { Header = new($"Output ({offset} / {candidates.Length})"), Expand = true };
+            : new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(new(n))))) { Header = new($"Output ({offset} / {candidates.Length})"), Expand = true };
         var outputLayout = new Layout("Output", panel);
         var symbolsGrid = new Table() { Expand = true };
         symbolsGrid.AddColumn("Symbol");
@@ -172,7 +174,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
 
     return (CreateLetters(symbols, length, firsts, valid.Select(s => (s switch
     {
-        (char c, _) => Enumerable.Repeat(c, 1),
+        ({ HasValue: true } c, _) => Enumerable.Repeat(c.ValueOrDefault(), 1),
         (_, char[] cs and not [' ']) => symbols.Except(cs),
         _ => symbols,
     }).Except(symbolsQty.Where(static kvp => kvp.Value.qty is 0).Select(static kvp => kvp.Key)).ToHashSet()).ToArray()), candidates?.Length ?? -1);
