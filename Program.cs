@@ -33,15 +33,10 @@ do
 {
     var letterChanged = Letter.Current!.ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault());
     if (letterChanged is ProcessKeyReturn.ResetWord)
-    {
         Letter.Current = firsts[^1];
-    }
     else if (letterChanged is ProcessKeyReturn.NextLetter && Letter.Current is null)
-    {
-        var (row, qty) = AddRow(firsts, slotsLength, symbols);
-        if (qty != 0)
+        if (AddRow(firsts, slotsLength, symbols) is (var row, not 0))
             table.AddRow(row);
-    }
     if (letterChanged is not ProcessKeyReturn.NothingHappened)
     {
         AnsiConsole.Clear();
@@ -124,9 +119,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         try
         {
             var array = candidates.ToArray();
-
             File.WriteAllLines("output.txt", array);
-
             return (symbolsQty, array, slots);
         }
         catch (CancelException)

@@ -16,10 +16,10 @@ partial class Letter: IRenderable
     {
         get => _symbols[_selected];
         set => _selected = _symbols.AsSpan().IndexOf(value) switch
-            {
-                < 0 => 0,
-                var i => i,
-            };
+        {
+            < 0 => 0,
+            var i => i,
+        };
     }
 
     private readonly ISet<char> validSymbols = default!;
