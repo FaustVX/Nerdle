@@ -162,12 +162,12 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         }
     } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, (candidates?.Length ?? 0) - height, height - 1));
 
-    return (CreateLetters(symbols, length, firsts, valid.Select(s => s switch
+    return (CreateLetters(symbols, length, firsts, valid.Select(s => (s switch
     {
-        (char c, _) => Enumerable.Repeat(c, 1).ToHashSet(),
-        (_, char[] cs and not [' ']) => symbols.Except(cs).ToHashSet(),
-        _ => new(symbols),
-    }).ToArray()), candidates?.Length ?? -1);
+        (char c, _) => Enumerable.Repeat(c, 1),
+        (_, char[] cs and not [' ']) => symbols.Except(cs),
+        _ => symbols,
+    }).Except(symbolsQty.Where(static kvp => kvp.Value.qty is 0).Select(static kvp => kvp.Key)).ToHashSet()).ToArray()), candidates?.Length ?? -1);
 
     static bool ProcessKey(ConsoleKey key, ref int offset, int length, int move)
     {
