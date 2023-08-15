@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Spectre.Console;
 using Optional;
 using Optional.Unsafe;
@@ -140,9 +140,10 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
     do
     {
         height = AnsiConsole.Console.Profile.Height - 3;
+        var path = new TextPath("./output.txt").Centered();
         var panel = candidates is [] or null
-            ? new Panel("") { Header = new($"Output [red](cancelled)[/]"), Expand = true }
-            : new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(new(n))))) { Header = new($"Output ({offset} / {candidates.Count})"), Expand = true };
+            ? new Panel(path) { Header = new($"Output [red](cancelled)[/]"), Expand = true }
+            : new Panel(new Rows(path, new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(new(n)))))) { Header = new($"Output ({offset} / {candidates.Count})"), Expand = true };
         var outputLayout = new Layout("Output", panel);
         var symbolsGrid = new Table() { Expand = true };
         symbolsGrid.AddColumn("Symbol");
