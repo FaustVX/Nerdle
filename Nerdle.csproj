@@ -5,12 +5,13 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <LangVersion>11</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Spectre.Console" Version="0.47.0" />
     <PackageReference Include="Optional" Version="4.0.0" />
+    <PackageReference Include="FaustVX.PrimaryParameter.SG" Version="1.0.0" />
   </ItemGroup>
 
 </Project>

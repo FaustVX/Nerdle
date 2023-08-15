@@ -94,5 +94,8 @@ public static class Ext
         }
     }
 
+    public static Memorizer<T> Memorize<T>(this IEnumerable<T> values)
+    => new(values.GetEnumerator());
+
     public readonly static char[]? Space = { ' ' };
 }

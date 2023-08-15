@@ -123,16 +123,15 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
             {
                 task.Value = qty;
                 return !(AnsiConsole.Console.Input.IsKeyAvailable() && AnsiConsole.Console.Input.ReadKey(intercept: true) is { Key: ConsoleKey.Escape });
-            });
+            }).Memorize();
         try
         {
-            var array = candidates.ToArray();
-            File.WriteAllLines("output.txt", array.Select(static s => new string(s)));
-            return (symbolsQty, array, slots);
+            File.WriteAllLines("output.txt", candidates.Select(static s => new string(s)));
+            return (symbolsQty, (IReadOnlyList<char[]>)candidates, slots);
         }
         catch (CancelException)
         {
-            return (symbolsQty, (char[][]?)null, slots);
+            return (symbolsQty, (IReadOnlyList<char[]>?)null, slots);
         }
     });
 
@@ -143,7 +142,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         height = AnsiConsole.Console.Profile.Height - 3;
         var panel = candidates is [] or null
             ? new Panel("") { Header = new($"Output [red](cancelled)[/]"), Expand = true }
-            : new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(new(n))))) { Header = new($"Output ({offset} / {candidates.Length})"), Expand = true };
+            : new Panel(new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(new(n))))) { Header = new($"Output ({offset} / {candidates.Count})"), Expand = true };
         var outputLayout = new Layout("Output", panel);
         var symbolsGrid = new Table() { Expand = true };
         symbolsGrid.AddColumn("Symbol");
@@ -172,14 +171,14 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
             yield return new(kvp.Value.qty?.ToString() ?? "?");
             yield return new(kvp.Value.min.ToString());
         }
-    } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, (candidates?.Length ?? 0) - height, height - 1));
+    } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, (candidates?.Count ?? 0) - height, height - 1));
 
     return (CreateLetters(symbols, length, firsts, valid.Select(s => (s switch
     {
         ({ HasValue: true } c, _) => Enumerable.Repeat(c.ValueOrDefault(), 1),
         (_, char[] cs and not [' ']) => symbols.Except(cs),
         _ => symbols,
-    }).Except(symbolsQty.Where(static kvp => kvp.Value.qty is 0).Select(static kvp => kvp.Key)).ToHashSet()).ToArray()), candidates?.Length ?? -1);
+    }).Except(symbolsQty.Where(static kvp => kvp.Value.qty is 0).Select(static kvp => kvp.Key)).ToHashSet()).ToArray()), candidates?.Count ?? -1);
 
     static bool ProcessKey(ConsoleKey key, ref int offset, int length, int move)
     {
