@@ -17,7 +17,7 @@ where TSymbol : IEquatable<TSymbol>
             .ToArray());
     }
 
-    public (IEnumerable<TSymbol[]> candidates, long maxQuantity) GetAllLines()
+    public (IEnumerable<(TSymbol[] value, long count)> candidates, long maxQuantity) GetAllLines()
     {
         // System.Diagnostics.Debugger.Launch();
         var symbols = Enumerable.Repeat((Slot, Symbols), Slot.Length)
@@ -32,7 +32,7 @@ where TSymbol : IEquatable<TSymbol>
 
         var combinatory = symbols.Aggregate(1L, static (acc, s) => checked(acc *= s.Length));
 
-        return (Process(0, new TSymbol[Slot.Length], symbols).Where(GetValidator(symbols)), combinatory);
+        return (Process(0, new TSymbol[Slot.Length], symbols).WhereWithCount(GetValidator(symbols)), combinatory);
     }
 
     protected virtual Func<TSymbol[], bool> GetValidator(TSymbol[][] symbols)

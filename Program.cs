@@ -105,7 +105,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
                     symbol.min = Math.Max(letters.Length, symbol.min);
                 }
 
-        var (candidates, qty) = probabilities is null
+        var (candidatesWithCount, qty) = probabilities is null
         ? new Wordle()
             {
                 Slot = slots,
@@ -119,13 +119,11 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
                 MinProb = float.Epsilon,
             }.GetAllLines();
         var task = ctx.AddTask("Calculating", true, qty);
-        candidates = qty is > 100_000
-            ? candidates.ReportProgress(qty, (int)(qty / 1000), p =>
-                {
-                    task.Value = p;
-                    return !(AnsiConsole.Console.Input.IsKeyAvailable() && AnsiConsole.Console.Input.ReadKey(intercept: true) is { Key: ConsoleKey.Escape });
-                })
-            : candidates;
+        var candidates = candidatesWithCount.ReportProgress(qty, qty is > 100_000 ? (int)(qty / 1000) : 0, qty =>
+            {
+                task.Value = qty;
+                return !(AnsiConsole.Console.Input.IsKeyAvailable() && AnsiConsole.Console.Input.ReadKey(intercept: true) is { Key: ConsoleKey.Escape });
+            });
         try
         {
             var array = candidates.ToArray();

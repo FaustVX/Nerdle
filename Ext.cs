@@ -9,22 +9,22 @@ public static class Ext
     public static Func<TIn, TResult> Then<TIn, TOut, TResult>(this Func<TIn, TOut> func, Func<TIn, TOut, TResult> then)
     => i => then(i, func(i));
 
-    public static IEnumerable<T> ReportProgress<T>(this IEnumerable<T> items, long max, int steps, Func<long, bool> progress)
+    public static IEnumerable<T> ReportProgress<T>(this IEnumerable<(T value, long count)> items, long max, int steps, Func<long, bool> progress)
     {
         if (steps <= 0)
-            return items;
+            return items.Select(static item => item.value);
         return Report(items, max, steps, progress);
 
-        static IEnumerable<T> Report(IEnumerable<T> items, long max, int steps, Func<long, bool> progress)
+        static IEnumerable<T> Report(IEnumerable<(T value, long count)> items, long max, int steps, Func<long, bool> progress)
         {
             var percent = Math.Max(max / steps, 1);
             using var enumerator = items.GetEnumerator();
 
             for (var i = 0L; enumerator.MoveNext(); i++)
             {
-                if (i % percent == 0 && !progress(i))
+                if (i % percent == 0 && !progress(enumerator.Current.count))
                     throw new CancelException();
-                yield return enumerator.Current;
+                yield return enumerator.Current.value;
             }
             progress(max);
         }
@@ -70,6 +70,28 @@ public static class Ext
     {
         foreach (var item in values)
             func(item);
+    }
+
+    public static IEnumerable<(T value, long count)> WhereWithCount<T>(this IEnumerable<T> values, Func<T, bool> condition)
+    {
+        var count = 0L;
+        foreach (var item in values)
+        {
+            count++;
+            if (condition(item))
+                yield return (item, count);
+        }
+    }
+
+    public static IEnumerable<(T value, long count)> WhereWithCount<T>(this IEnumerable<(T value, long count)> values, Func<T, bool> condition)
+    {
+        var count = 0L;
+        foreach (var (value, c) in values)
+        {
+            count += c;
+            if (condition(value))
+                yield return (value, count);
+        }
     }
 
     public readonly static char[]? Space = { ' ' };
