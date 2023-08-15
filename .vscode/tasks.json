@@ -63,7 +63,7 @@
                 "clear": false,
             },
             "runOptions": {
-                "instanceLimit": 2
+                "instanceLimit": 1000, // big number for no limit
             }
         },
         {
@@ -89,7 +89,7 @@
                 "clear": false,
             },
             "runOptions": {
-                "instanceLimit": 2
+                "instanceLimit": 1000, // big number for no limit
             }
         },
     ],
