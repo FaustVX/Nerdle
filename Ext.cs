@@ -11,24 +11,24 @@ public static class Ext
 
     public static IEnumerable<T> ReportProgress<T>(this IEnumerable<(T value, long count)> items, long max, int steps, Func<long, bool> progress)
     {
-        if (steps <= 0)
+        if (steps <= 0 || steps >= max)
             return items.Select(static item => item.value);
         return Report(items, max, steps, progress);
 
         static IEnumerable<T> Report(IEnumerable<(T value, long count)> items, long max, int steps, Func<long, bool> progress)
         {
-            var percent = Math.Max(max / steps, 1);
             using var enumerator = items.GetEnumerator();
 
             for (var i = 0L; enumerator.MoveNext(); i++)
             {
-                if (i % percent == 0 && !progress(enumerator.Current.count))
+                if (i % steps == 0 && !progress(enumerator.Current.count))
                     throw new CancelException();
                 yield return enumerator.Current.value;
             }
             progress(max);
         }
     }
+
     public static T Forward<T>(this T value, Func<T, T> func, int count)
     {
         if (count <= 0)

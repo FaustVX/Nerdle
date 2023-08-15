@@ -119,7 +119,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
                 MinProb = float.Epsilon,
             }.GetAllLines();
         var task = ctx.AddTask("Calculating", true, qty);
-        var candidates = candidatesWithCount.ReportProgress(qty, qty is > 100_000 ? (int)(qty / 1000) : 0, qty =>
+        var candidates = candidatesWithCount.ReportProgress(qty, 1, qty =>
             {
                 task.Value = qty;
                 return !(AnsiConsole.Console.Input.IsKeyAvailable() && AnsiConsole.Console.Input.ReadKey(intercept: true) is { Key: ConsoleKey.Escape });
