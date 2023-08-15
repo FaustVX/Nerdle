@@ -29,21 +29,6 @@ public static class Ext
             progress(max);
         }
     }
-
-    internal static Nerdle WithProbalities(this Nerdle nerdle, float[,]? probalities, float minProb = float.Epsilon)
-    => probalities is null
-        ? new Nerdle()
-        {
-            Slot = nerdle.Slot,
-            Symbols = nerdle.Symbols,
-        }
-        : new NerdleProbalistic()
-        {
-            Slot = nerdle.Slot,
-            Symbols = nerdle.InitialSymbols,
-            Probalities = probalities,
-            MinProb = minProb,
-        };
     public static T Forward<T>(this T value, Func<T, T> func, int count)
     {
         if (count <= 0)
