@@ -13,6 +13,6 @@ public sealed class ProcessingSpeedColumn : ProgressColumn
         {
             return new Text("?/s");
         }
-        return new Markup($"{task.Speed:0} words/s");
+        return new Markup($"{task.Speed:0} guesses/s");
     }
 }
