@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Spectre.Console;
 using Optional;
 using Optional.Unsafe;
@@ -66,7 +66,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
     var (symbolsQty, candidates, valid) = AnsiConsole.Progress()
     .Columns(new ProgressColumn[] 
     {
-        new SpinnerColumn(),
+        new SpinnerColumn(Spinner.Known.Aesthetic),
         new TaskDescriptionColumn(),
         new ProgressBarColumn(),
         new PercentageColumn(),
