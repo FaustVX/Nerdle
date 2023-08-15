@@ -65,6 +65,8 @@ partial class Letter: IRenderable
 
     public Letter? Next { get; private set; }
 
+    public static bool RenderDecoration { get; set; } = true;
+
     Measurement IRenderable.Measure(RenderOptions options, int maxWidth)
     => new(1, 1);
 
@@ -81,7 +83,7 @@ partial class Letter: IRenderable
         var decoration = IsLetterSelected ? Decoration.Italic | Decoration.Underline | Decoration.SlowBlink : default;
         if (!ValidSymbols.Contains(Selected))
             decoration |= Decoration.Strikethrough;
-        yield return new(Selected.ToString(), new(background: background, foreground: foreground, decoration: decoration));
+        yield return new(Selected.ToString(), new(background: background, foreground: foreground, decoration: RenderDecoration ? decoration : null));
     }
 
     public ProcessKeyReturn ProcessKey(ConsoleKeyInfo key)

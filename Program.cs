@@ -38,7 +38,7 @@ do
     if (letterChanged is ProcessKeyReturn.ResetWord)
         Letter.Current = firsts[^1];
     else if (letterChanged is ProcessKeyReturn.NextLetter && Letter.Current is null)
-        if (AddRow(firsts, slotsLength, symbols, probabilities) is (var row, not 0))
+        if (AddRow(firsts, slotsLength, symbols, probabilities, table) is (var row, not 0))
             table.AddRow(row);
     if (letterChanged is not ProcessKeyReturn.NothingHappened)
     {
@@ -61,7 +61,7 @@ static IEnumerable<Letter> CreateLetters(IReadOnlySet<char> symbols, int length,
     });
 }
 
-static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, IReadOnlySet<char> symbols, float[,]? probabilities)
+static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, IReadOnlySet<char> symbols, float[,]? probabilities, Table table)
 {
     var (symbolsQty, candidates, valid) = AnsiConsole.Progress()
     .Columns(new ProgressColumn[] 
@@ -156,7 +156,11 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
             .Execute(symbolsGrid.AddRow);
 
         AnsiConsole.Clear();
-        AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new($"Symbols ({symbolsGrid.Rows.Count})"), Expand = true })));
+        table.Expand = true;
+        Letter.RenderDecoration = false;
+        AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new($"Symbols ({symbolsGrid.Rows.Count})"), Expand = true }), new(new Panel(table) { Header = new($"Guesses ({table.Rows.Count})"), Expand = true })));
+        Letter.RenderDecoration = true;
+        table.Expand = false;
 
         static IEnumerable<Markup> GenerateRow(KeyValuePair<char, (int? qty, int min)> kvp)
         {
