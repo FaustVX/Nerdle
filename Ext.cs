@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public class CancelException : Exception
 { }
@@ -97,6 +99,30 @@ public static class Ext
     public static Memorizer<T> Memorize<T>(this IEnumerable<T> values)
     => new(values.GetEnumerator());
 
+    internal static void Save(IReadOnlyList<Letter> guesses, int length, IEnumerable<char[]> candidates, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty)
+    {
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+            },
+        };
+        var list = candidates
+            .Select(static c => new string(c))
+            .ToList();
+        var g = guesses
+            .Select(static g => g
+                .SelectAll(static l => l.Next!, static l =>l is not null)
+                .Select(static l => new Saving.Guess(l.Selected, l.LetterMode))
+                .ToArray())
+            .ToList();
+        var saving = new Saving(length, symbolsQty.ToDictionary(static kvp => kvp.Key, static kvp => new Saving.Qty(kvp.Value.qty, kvp.Value.min)), g, list);
+        var jsonString = JsonSerializer.Serialize(saving, options);
+        File.WriteAllText("output.json", jsonString);
+    }
+
 #if !NET8_0_OR_GREATER
     public static int Count<T>(this ReadOnlySpan<T> values, T value)
     {
@@ -109,4 +135,21 @@ public static class Ext
 #endif
 
     public readonly static char[]? Space = { ' ' };
+
+    private sealed record class Saving(int Length, Dictionary<char, Saving.Qty> Symbols, List<Saving.Guess[]> Guesses, List<string> Candidates)
+    {
+        [JsonPropertyOrder(-1)]
+        public int Version
+        {
+            get => 1;
+            init
+            {
+                if (value != Version)
+                    throw new InvalidOperationException();
+            }
+        }
+
+        public sealed record class Qty(int? Quantity, int Minimum);
+        public sealed record class Guess(char Value, LetterMode Mode);
+    }
 }

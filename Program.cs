@@ -126,7 +126,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
             }).Memorize();
         try
         {
-            File.WriteAllLines("output.txt", candidates.Select(static s => new string(s)));
+            Ext.Save((List<Letter>)firsts, length, candidates, symbolsQty);
             return (symbolsQty, (IReadOnlyList<char[]>)candidates, slots);
         }
         catch (CancelException)
@@ -140,7 +140,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
     do
     {
         height = AnsiConsole.Console.Profile.Height - 3;
-        var path = new TextPath("./output.txt").Centered();
+        var path = new TextPath("./output.json").Centered();
         var panel = candidates is [] or null
             ? new Panel(path) { Header = new($"Output [red](cancelled)[/]"), Expand = true }
             : new Panel(new Rows(path, new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(new(n)))))) { Header = new($"Output ({offset} / {candidates.Count})"), Expand = true };
