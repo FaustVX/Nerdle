@@ -97,5 +97,16 @@ public static class Ext
     public static Memorizer<T> Memorize<T>(this IEnumerable<T> values)
     => new(values.GetEnumerator());
 
+#if !NET8_0_OR_GREATER
+    public static int Count<T>(this ReadOnlySpan<T> values, T value)
+    {
+        var count = 0;
+        foreach (var item in values)
+            if (item?.Equals(value) ?? false)
+                count++;
+        return count;
+    }
+#endif
+
     public readonly static char[]? Space = { ' ' };
 }
