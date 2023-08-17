@@ -56,7 +56,7 @@ partial class Letter: IRenderable
                 return;
             }
             var selected = Selected;
-            _symbols = value?.ToArray() ?? Array.Empty<char>();
+            _symbols = value?.ToArray() ?? [];
             (_selected, LetterMode) = _symbols.AsSpan().IndexOf(selected) is >= 0 and var i ? (i, LetterMode) : (0, LetterMode.Unknown);
             if (SymbolsLength <= 1)
                 LetterMode = LetterMode.CorrectPlace;

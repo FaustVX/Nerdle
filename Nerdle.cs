@@ -23,7 +23,7 @@ where TSymbol : IEquatable<TSymbol>
         var symbols = Enumerable.Repeat((Slot, Symbols), Slot.Length)
             .Select(static (p, pos) => p.Slot[pos] switch
             {
-                ({ HasValue: true } m, _) => Enumerable.Repeat(m.ValueOrDefault(), 1),
+                ({ HasValue: true } m, _) => [m.ValueOrDefault()],
                 (_, TSymbol[] f) => p.Symbols.Select(static s => s.symbol).Except(f),
                 _ => throw new System.Diagnostics.UnreachableException(),
             })
@@ -47,7 +47,7 @@ where TSymbol : IEquatable<TSymbol>
                 foreach (var l in Process(pos + 1, line, symbols))
                     yield return l;
             else
-                yield return (TSymbol[])line.Clone();
+                yield return [.. line];
         }
     }
 

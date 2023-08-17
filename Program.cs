@@ -8,7 +8,9 @@ using Optional.Unsafe;
 
 var slotsLength = int.Parse(args[0]);
 var symbols = args[1].ToHashSet();
-var probabilities = args is [_, _, var path] ? WordleProbalistic.CreateMarkovChain(File.ReadAllLines(path).ToHashSet()) : null;
+var probabilities = args is [_, _, var path]
+    ? WordleProbalistic.CreateMarkovChain(File.ReadAllLines(path).ToHashSet())
+    : null;
 
 var table = new Table();
 
@@ -18,17 +20,6 @@ for (var s = 1; s <= slotsLength; s++)
 var firsts = new List<Letter>();
 
 table.AddRow(CreateLetters(symbols, slotsLength, firsts, Enumerable.Repeat(symbols, slotsLength).ToArray()));
-
-static IEnumerable<string> GenerateCandidates(int length, IEnumerable<char> symbols)
-{
-    if (length <= 1)
-        foreach (var symbol in symbols)
-            yield return symbol.ToString();
-    else
-        foreach (var candidate in GenerateCandidates(length - 1, symbols))
-            foreach (var symbol in symbols)
-                yield return candidate + symbol;
-}
 
 AnsiConsole.Clear();
 AnsiConsole.Write(table);
@@ -64,8 +55,8 @@ static IEnumerable<Letter> CreateLetters(IReadOnlySet<char> symbols, int length,
 static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, IReadOnlySet<char> symbols, float[,]? probabilities, Table table)
 {
     var (symbolsQty, candidates, valid) = AnsiConsole.Progress()
-    .Columns(new ProgressColumn[] 
-    {
+    .Columns(
+    [
         new SpinnerColumn(Spinner.Known.Aesthetic),
         new TaskDescriptionColumn(),
         new ProgressBarColumn(),
@@ -73,7 +64,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         new ProcessingSpeedColumn(),
         new ElapsedTimeColumn(),
         new RemainingTimeColumn(),
-    })
+    ])
     .Start(ctx =>
     {
         var words = firsts
@@ -109,12 +100,12 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         ? new Wordle()
             {
                 Slot = slots,
-                Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
+                Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
             }.GetAllLines()
         : new WordleProbalistic()
             {
                 Slot = slots,
-                Symbols = symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min)).ToArray(),
+                Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
                 Probalities = probabilities,
                 MinProb = float.Epsilon,
             }.GetAllLines();

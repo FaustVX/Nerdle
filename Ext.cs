@@ -134,7 +134,7 @@ public static class Ext
     }
 #endif
 
-    public readonly static char[]? Space = { ' ' };
+    public readonly static char[]? Space = [' '];
 
     private sealed record class Saving(int Length, Dictionary<char, Saving.Qty> Symbols, List<Saving.Guess[]> Guesses, List<string> Candidates)
     {
