@@ -123,6 +123,12 @@ public static class Ext
         File.WriteAllText("output.json", jsonString);
     }
 
+    internal static (int length, IReadOnlyDictionary<char, (int? qty, int min)> symbols, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols) Load()
+    {
+        var (length, symbols, guesses, validSymbols, _) = JsonSerializer.Deserialize<Saving>(File.OpenRead("output.json"))!;
+        return (length, symbols, guesses, validSymbols);
+    }
+
 #if !NET8_0_OR_GREATER
     public static int Count<T>(this ReadOnlySpan<T> values, T value)
     {
@@ -149,7 +155,48 @@ public static class Ext
             }
         }
 
+        [JsonIgnore]
+        public IReadOnlySet<char> ValidSymbols
+        => Symbols.Keys.ToHashSet();
+
         public sealed record class Qty(int? Quantity, int Minimum);
         public sealed record class Guess(char Value, LetterMode Mode);
+
+        public void Deconstruct(out int length, out IReadOnlyDictionary<char, (int? qty, int min)> symbols, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out object _)
+        {
+            length = Length;
+            symbols = Symbols.ToDictionary(static kvp => kvp.Key, static kvp => (kvp.Value.Quantity, kvp.Value.Minimum));
+            guesses = Guesses.Select(g => g.Select(g => new Letter()
+            {
+                Previous = null!,
+                Selected = g.Value,
+                LetterMode = g.Mode,
+                Symbols = ValidSymbols,
+                ValidSymbols = ValidSymbols,
+            }).ToArray())
+            .Select(CreateLetter)
+            .ToList();
+            validSymbols = ValidSymbols;
+            _ = default!;
+
+            Letter CreateLetter(Letter[] letters)
+            {
+                var first = letters[0];
+                var last = first;
+                for (var i = 1; i < letters.Length; i++)
+                {
+                    var letter = letters[i];
+                    last = new()
+                    {
+                        Previous = last,
+                        Selected = letter.Selected,
+                        LetterMode = letter.LetterMode,
+                        Symbols = ValidSymbols,
+                        ValidSymbols = letter.ValidSymbols,
+                    };
+                }
+                return first;
+            }
+        }
     }
 }

@@ -6,11 +6,25 @@ using Optional.Unsafe;
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 //     nerdle lenght ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
 
-var slotsLength = int.Parse(args[0]);
-var symbols = args[1].ToHashSet();
-var probabilities = args is [_, _, var path]
-    ? WordleProbalistic.CreateMarkovChain(File.ReadAllLines(path).ToHashSet())
-    : null;
+var (slotsLength, _, _, symbols, probabilities) = Load(args);
+
+static (int length, IReadOnlyDictionary<char, (int? qty, int min)>? symbols, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymbols, float[,]? probabilities) Load(string[] args)
+{
+    if (args is [])
+    {
+        var (slotsLength, symbols, guesses, validSymbols) = Ext.Load();
+        return (slotsLength, symbols, guesses, validSymbols, default);
+    }
+    else
+    {
+        var slotsLength = int.Parse(args[0]);
+        var symbols = args[1].ToHashSet();
+        var probabilities = args is [_, _, var path]
+            ? WordleProbalistic.CreateMarkovChain(File.ReadAllLines(path).ToHashSet())
+            : null;
+        return (slotsLength, default, default, symbols, probabilities);
+    }
+}
 
 var table = new Table();
 
