@@ -4,13 +4,11 @@ public sealed partial class Memorizer<T>([Field]IEnumerator<T> enumerator) : IEn
 {
     private readonly List<T> _list = new();
 
-    public int Count => ((IReadOnlyCollection<T>)_list).Count;
+    public int Count => _list.Count;
 
-    public T this[int index] => ((IReadOnlyList<T>)_list)[index];
+    public T this[int index] => _list[index];
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-    => GetEnumerator();
-    IEnumerator<T> IEnumerable<T>.GetEnumerator()
     => GetEnumerator();
 
     public IEnumerator<T> GetEnumerator()
