@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Spectre.Console;
 using Optional;
 using Optional.Unsafe;
@@ -136,6 +136,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         }
         catch (CancelException)
         {
+            Ext.Save((List<Letter>)firsts, length, Enumerable.Empty<char[]>(), symbolsQty);
             return (symbolsQty, (IReadOnlyList<char[]>?)null, slots);
         }
     });
