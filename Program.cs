@@ -144,6 +144,19 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         }
     });
 
+    DisplaySummary(candidates, symbolsQty, table);
+
+    return (CreateLetters(symbols, length, firsts, valid.Select(s => (s switch
+    {
+        ({ HasValue: true } c, _) => Enumerable.Repeat(c.ValueOrDefault(), 1),
+        (_, char[] cs and not [' ']) => symbols.Except(cs),
+        _ => symbols,
+    }).Except(symbolsQty.Where(static kvp => kvp.Value.qty is 0).Select(static kvp => kvp.Key)).ToHashSet()).ToArray()), candidates?.Count ?? -1);
+}
+
+static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty, Table table)
+{
+
     var height = 0;
     var offset = 0;
     do
@@ -182,13 +195,6 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
             yield return new(kvp.Value.min.ToString());
         }
     } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, (candidates?.Count ?? 0) - height, height - 1));
-
-    return (CreateLetters(symbols, length, firsts, valid.Select(s => (s switch
-    {
-        ({ HasValue: true } c, _) => Enumerable.Repeat(c.ValueOrDefault(), 1),
-        (_, char[] cs and not [' ']) => symbols.Except(cs),
-        _ => symbols,
-    }).Except(symbolsQty.Where(static kvp => kvp.Value.qty is 0).Select(static kvp => kvp.Key)).ToHashSet()).ToArray()), candidates?.Count ?? -1);
 
     static bool ProcessKey(ConsoleKey key, ref int offset, int length, int move)
     {
