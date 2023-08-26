@@ -123,7 +123,7 @@ public static class Ext
         File.WriteAllText("output.json", jsonString);
     }
 
-    internal static (int length, IReadOnlyDictionary<char, (int? qty, int min)> symbols, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary, IReadOnlyList<char[]> candidates) Load()
+    internal static (int length, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary) Load()
     {
         var options = new JsonSerializerOptions
         {
@@ -133,8 +133,8 @@ public static class Ext
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
         };
-        var (length, symbols, guesses, validSymbols, file, candidates) = JsonSerializer.Deserialize<Saving>(File.OpenRead("output.json"), options)!;
-        return (length, symbols, guesses, validSymbols, file, candidates);
+        var (length, guesses, validSymbols, file) = JsonSerializer.Deserialize<Saving>(File.OpenRead("output.json"), options)!;
+        return (length, guesses, validSymbols, file);
     }
 
 #if !NET8_0_OR_GREATER
@@ -170,10 +170,9 @@ public static class Ext
         public sealed record class Qty(int? Quantity, int Minimum);
         public sealed record class Guess(char Value, LetterMode Mode);
 
-        public void Deconstruct(out int length, out IReadOnlyDictionary<char, (int? qty, int min)> symbols, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out string? probabilityDictionary, out IReadOnlyList<char[]> candidates)
+        public void Deconstruct(out int length, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out string? probabilityDictionary)
         {
             length = Length;
-            symbols = Symbols.ToDictionary(static kvp => kvp.Key, static kvp => (kvp.Value.Quantity, kvp.Value.Minimum));
             var vs = validSymbols = ValidSymbols;
             guesses = Guesses.Select(gs => gs.Select(g => new Letter()
             {
@@ -186,9 +185,6 @@ public static class Ext
             .Select(CreateLetter)
             .ToList();
             probabilityDictionary = ProbabilityDictionary;
-            candidates = Candidates
-                .Select(static c => c.ToCharArray())
-                .ToList();
 
             Letter CreateLetter(Letter[] letters)
             {
