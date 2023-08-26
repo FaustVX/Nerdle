@@ -1,10 +1,10 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Spectre.Console;
 using Optional;
 using Optional.Unsafe;
 
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
-//     nerdle lenght ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
+//     nerdle length ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
 
 var (slotsLength, _, savedGuesses, symbols, probabilityPath) = Load(args);
 var probabilities = probabilityPath is not null
