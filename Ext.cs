@@ -123,7 +123,7 @@ public static class Ext
         File.WriteAllText("output.json", jsonString);
     }
 
-    internal static (int length, IReadOnlyDictionary<char, (int? qty, int min)> symbols, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary) Load()
+    internal static (int length, IReadOnlyDictionary<char, (int? qty, int min)> symbols, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary, IReadOnlyList<char[]> candidates) Load()
     {
         var options = new JsonSerializerOptions
         {
@@ -133,8 +133,8 @@ public static class Ext
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
         };
-        var (length, symbols, guesses, validSymbols, file, _) = JsonSerializer.Deserialize<Saving>(File.OpenRead("output.json"), options)!;
-        return (length, symbols, guesses, validSymbols, file);
+        var (length, symbols, guesses, validSymbols, file, candidates) = JsonSerializer.Deserialize<Saving>(File.OpenRead("output.json"), options)!;
+        return (length, symbols, guesses, validSymbols, file, candidates);
     }
 
 #if !NET8_0_OR_GREATER
@@ -170,7 +170,7 @@ public static class Ext
         public sealed record class Qty(int? Quantity, int Minimum);
         public sealed record class Guess(char Value, LetterMode Mode);
 
-        public void Deconstruct(out int length, out IReadOnlyDictionary<char, (int? qty, int min)> symbols, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out string? probabilityDictionary, out object _)
+        public void Deconstruct(out int length, out IReadOnlyDictionary<char, (int? qty, int min)> symbols, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out string? probabilityDictionary, out IReadOnlyList<char[]> candidates)
         {
             length = Length;
             symbols = Symbols.ToDictionary(static kvp => kvp.Key, static kvp => (kvp.Value.Quantity, kvp.Value.Minimum));
@@ -186,7 +186,9 @@ public static class Ext
             .Select(CreateLetter)
             .ToList();
             probabilityDictionary = ProbabilityDictionary;
-            _ = default!;
+            candidates = Candidates
+                .Select(static c => c.ToCharArray())
+                .ToList();
 
             Letter CreateLetter(Letter[] letters)
             {
@@ -198,10 +200,10 @@ public static class Ext
                     last = new()
                     {
                         Previous = last,
-                        Selected = letter.Selected,
-                        LetterMode = letter.LetterMode,
                         Symbols = vs,
                         ValidSymbols = letter.ValidSymbols,
+                        Selected = letter.Selected,
+                        LetterMode = letter.LetterMode,
                     };
                 }
                 return first;

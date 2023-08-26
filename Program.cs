@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Spectre.Console;
 using Optional;
 using Optional.Unsafe;
@@ -6,18 +6,15 @@ using Optional.Unsafe;
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 //     nerdle length ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
 
-var (slotsLength, _, savedGuesses, symbols, probabilityPath) = Load(args);
+var (slotsLength, _, savedGuesses, symbols, probabilityPath, savedCandidates) = Load(args);
 var probabilities = probabilityPath is not null
     ? WordleProbalistic.CreateMarkovChain(File.ReadAllLines(probabilityPath).ToHashSet())
     : null;
 
-static (int length, IReadOnlyDictionary<char, (int? qty, int min)>? symbols, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymbols, string? probabilityPath) Load(string[] args)
+static (int length, IReadOnlyDictionary<char, (int? qty, int min)>? symbols, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymbols, string? probabilityPath, IReadOnlyList<char[]>? candidates) Load(string[] args)
 {
     if (args is [])
-    {
-        var (slotsLength, symbols, guesses, validSymbols, probabilityPath) = Ext.Load();
-        return (slotsLength, symbols, guesses, validSymbols, probabilityPath);
-    }
+        return Ext.Load();
     else
     {
         var slotsLength = int.Parse(args[0]);
@@ -25,7 +22,7 @@ static (int length, IReadOnlyDictionary<char, (int? qty, int min)>? symbols, IRe
         var probabilityPath = args is [_, _, var path]
             ? path
             : null;
-        return (slotsLength, default, default, symbols, probabilityPath);
+        return (slotsLength, default, default, symbols, probabilityPath, default);
     }
 }
 
@@ -35,6 +32,9 @@ for (var s = 1; s <= slotsLength; s++)
     table.AddColumn(new TableColumn(s.ToString()) { Alignment = Justify.Center });
 
 var firsts = savedGuesses?.ToList() ?? new();
+
+if (firsts is { Count: >= 1 })
+    AddPreviousRows(firsts, slotsLength, symbols, table, savedCandidates!);
 
 table.AddRow(CreateLetters(symbols, slotsLength, firsts, Enumerable.Repeat(symbols, slotsLength).ToArray()));
 
@@ -221,5 +221,50 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
             default:
                 return true;
         }
+    }
+}
+
+static void AddPreviousRows(IList<Letter> firsts, int length, IReadOnlySet<char> symbols, Table table, IReadOnlyList<char[]> candidates)
+{
+    var words = firsts
+        .Select(static l => l.SelectAll(static l => l.Next!, static l => l != null).ToArray())
+        .ToArray();
+    var columns = words
+        .Transpose()
+        .Select(static l => l.ToArray())
+        .ToArray();
+    var slots = columns
+        .Select(static column =>
+        {
+            if (column.FirstOrDefault(static l => l.LetterMode == LetterMode.CorrectPlace) is { Selected: var c })
+                return (c.Some(), Ext.Space);
+            return (Option.None<char>(), column.Where(static l => l.LetterMode != LetterMode.CorrectPlace).Select(static l => l.Selected).ToArray());
+        })
+        .ToArray();
+    var symbolsQty = symbols
+        .ToDictionary(static s => s, static s => (qty: new int?(), min: 0));
+
+    SetSymbolsQty(words, symbolsQty);
+
+    foreach (var word in words)
+    {
+        table.AddRow(word);
+    }
+
+    DisplaySummary(candidates, symbolsQty, table);
+
+    static void SetSymbolsQty(Letter[][] words, Dictionary<char, (int? qty, int min)> symbolsQty)
+    {
+        foreach (var word in words)
+            foreach (var (c, letters) in word.GroupBy(static l => l.Selected).ToDictionary(static g => g.Key, static g => g.OrderBy(static l => l.LetterMode).ToArray()))
+                if (letters[0].LetterMode is LetterMode.InvalideLetter)
+                    CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = 0;
+                else if (letters[^1].LetterMode is LetterMode.InvalideLetter)
+                    CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = letters.Count(static l => l.LetterMode is not LetterMode.InvalideLetter);
+                else
+                {
+                    ref var symbol = ref CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c);
+                    symbol.min = Math.Max(letters.Length, symbol.min);
+                }
     }
 }
