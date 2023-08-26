@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Spectre.Console;
 using Optional;
 using Optional.Unsafe;
@@ -6,23 +6,26 @@ using Optional.Unsafe;
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 //     nerdle lenght ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
 
-var (slotsLength, _, _, symbols, probabilities) = Load(args);
+var (slotsLength, _, savedGuesses, symbols, probabilityPath) = Load(args);
+var probabilities = probabilityPath is not null
+    ? WordleProbalistic.CreateMarkovChain(File.ReadAllLines(probabilityPath).ToHashSet())
+    : null;
 
-static (int length, IReadOnlyDictionary<char, (int? qty, int min)>? symbols, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymbols, float[,]? probabilities) Load(string[] args)
+static (int length, IReadOnlyDictionary<char, (int? qty, int min)>? symbols, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymbols, string? probabilityPath) Load(string[] args)
 {
     if (args is [])
     {
-        var (slotsLength, symbols, guesses, validSymbols) = Ext.Load();
-        return (slotsLength, symbols, guesses, validSymbols, default);
+        var (slotsLength, symbols, guesses, validSymbols, probabilityPath) = Ext.Load();
+        return (slotsLength, symbols, guesses, validSymbols, probabilityPath);
     }
     else
     {
         var slotsLength = int.Parse(args[0]);
         var symbols = args[1].ToHashSet();
-        var probabilities = args is [_, _, var path]
-            ? WordleProbalistic.CreateMarkovChain(File.ReadAllLines(path).ToHashSet())
+        var probabilityPath = args is [_, _, var path]
+            ? path
             : null;
-        return (slotsLength, default, default, symbols, probabilities);
+        return (slotsLength, default, default, symbols, probabilityPath);
     }
 }
 
@@ -31,7 +34,7 @@ var table = new Table();
 for (var s = 1; s <= slotsLength; s++)
     table.AddColumn(new TableColumn(s.ToString()) { Alignment = Justify.Center });
 
-var firsts = new List<Letter>();
+var firsts = savedGuesses?.ToList() ?? new();
 
 table.AddRow(CreateLetters(symbols, slotsLength, firsts, Enumerable.Repeat(symbols, slotsLength).ToArray()));
 
@@ -43,7 +46,7 @@ do
     if (letterChanged is ProcessKeyReturn.ResetWord)
         Letter.Current = firsts[^1];
     else if (letterChanged is ProcessKeyReturn.NextLetter && Letter.Current is null)
-        if (AddRow(firsts, slotsLength, symbols, probabilities, table) is (var row, not 0))
+        if (AddRow(firsts, slotsLength, symbols, probabilities, table, probabilityPath) is (var row, not 0))
             table.AddRow(row);
     if (letterChanged is not ProcessKeyReturn.NothingHappened)
     {
@@ -66,7 +69,7 @@ static IEnumerable<Letter> CreateLetters(IReadOnlySet<char> symbols, int length,
     });
 }
 
-static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, IReadOnlySet<char> symbols, float[,]? probabilities, Table table)
+static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts, int length, IReadOnlySet<char> symbols, float[,]? probabilities, Table table, string? probabilityPath)
 {
     var (symbolsQty, candidates, valid) = AnsiConsole.Progress()
     .Columns(
@@ -131,12 +134,12 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
             }).Memorize();
         try
         {
-            Ext.Save((List<Letter>)firsts, length, candidates, symbolsQty);
+            Ext.Save((List<Letter>)firsts, length, candidates, symbolsQty, probabilityPath);
             return (symbolsQty, (IReadOnlyList<char[]>)candidates, slots);
         }
         catch (CancelException)
         {
-            Ext.Save((List<Letter>)firsts, length, Enumerable.Empty<char[]>(), symbolsQty);
+            Ext.Save((List<Letter>)firsts, length, Enumerable.Empty<char[]>(), symbolsQty, probabilityPath);
             return (symbolsQty, (IReadOnlyList<char[]>?)null, slots);
         }
     });

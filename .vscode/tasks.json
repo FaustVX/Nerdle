@@ -92,6 +92,28 @@
                 "instanceLimit": 1000, // big number for no limit
             }
         },
+        {
+            "label": "run output.json",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--configuration",
+                "${input:configuration}",
+            ],
+            "type": "process",
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false,
+            },
+            "runOptions": {
+                "instanceLimit": 1000, // big number for no limit
+            }
+        },
     ],
     "inputs": [
         {

@@ -99,7 +99,7 @@ public static class Ext
     public static Memorizer<T> Memorize<T>(this IEnumerable<T> values)
     => new(values.GetEnumerator());
 
-    internal static void Save(IReadOnlyList<Letter> guesses, int length, IEnumerable<char[]> candidates, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty)
+    internal static void Save(IReadOnlyList<Letter> guesses, int length, IEnumerable<char[]> candidates, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty, string? probabilityDictionary)
     {
         var options = new JsonSerializerOptions
         {
@@ -118,15 +118,23 @@ public static class Ext
                 .Select(static l => new Saving.Guess(l.Selected, l.LetterMode))
                 .ToArray())
             .ToList();
-        var saving = new Saving(length, symbolsQty.ToDictionary(static kvp => kvp.Key, static kvp => new Saving.Qty(kvp.Value.qty, kvp.Value.min)), g, list);
+        var saving = new Saving(length, probabilityDictionary, symbolsQty.ToDictionary(static kvp => kvp.Key, static kvp => new Saving.Qty(kvp.Value.qty, kvp.Value.min)), g, list);
         var jsonString = JsonSerializer.Serialize(saving, options);
         File.WriteAllText("output.json", jsonString);
     }
 
-    internal static (int length, IReadOnlyDictionary<char, (int? qty, int min)> symbols, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols) Load()
+    internal static (int length, IReadOnlyDictionary<char, (int? qty, int min)> symbols, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary) Load()
     {
-        var (length, symbols, guesses, validSymbols, _) = JsonSerializer.Deserialize<Saving>(File.OpenRead("output.json"))!;
-        return (length, symbols, guesses, validSymbols);
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+            },
+        };
+        var (length, symbols, guesses, validSymbols, file, _) = JsonSerializer.Deserialize<Saving>(File.OpenRead("output.json"), options)!;
+        return (length, symbols, guesses, validSymbols, file);
     }
 
 #if !NET8_0_OR_GREATER
@@ -142,12 +150,12 @@ public static class Ext
 
     public readonly static char[]? Space = [' '];
 
-    private sealed record class Saving(int Length, Dictionary<char, Saving.Qty> Symbols, List<Saving.Guess[]> Guesses, List<string> Candidates)
+    private sealed record class Saving(int Length, string? ProbabilityDictionary, Dictionary<char, Saving.Qty> Symbols, List<Saving.Guess[]> Guesses, List<string> Candidates)
     {
         [JsonPropertyOrder(-1)]
         public int Version
         {
-            get => 1;
+            get => 2;
             init
             {
                 if (value != Version)
@@ -162,21 +170,22 @@ public static class Ext
         public sealed record class Qty(int? Quantity, int Minimum);
         public sealed record class Guess(char Value, LetterMode Mode);
 
-        public void Deconstruct(out int length, out IReadOnlyDictionary<char, (int? qty, int min)> symbols, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out object _)
+        public void Deconstruct(out int length, out IReadOnlyDictionary<char, (int? qty, int min)> symbols, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out string? probabilityDictionary, out object _)
         {
             length = Length;
             symbols = Symbols.ToDictionary(static kvp => kvp.Key, static kvp => (kvp.Value.Quantity, kvp.Value.Minimum));
-            guesses = Guesses.Select(g => g.Select(g => new Letter()
+            var vs = validSymbols = ValidSymbols;
+            guesses = Guesses.Select(gs => gs.Select(g => new Letter()
             {
                 Previous = null!,
+                Symbols = vs,
+                ValidSymbols = vs,
                 Selected = g.Value,
                 LetterMode = g.Mode,
-                Symbols = ValidSymbols,
-                ValidSymbols = ValidSymbols,
             }).ToArray())
             .Select(CreateLetter)
             .ToList();
-            validSymbols = ValidSymbols;
+            probabilityDictionary = ProbabilityDictionary;
             _ = default!;
 
             Letter CreateLetter(Letter[] letters)
@@ -191,7 +200,7 @@ public static class Ext
                         Previous = last,
                         Selected = letter.Selected,
                         LetterMode = letter.LetterMode,
-                        Symbols = ValidSymbols,
+                        Symbols = vs,
                         ValidSymbols = letter.ValidSymbols,
                     };
                 }
