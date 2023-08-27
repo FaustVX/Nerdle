@@ -86,19 +86,7 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
     {
         var (words, slots, symbolsQty) = SetSymbolsQty(firsts, symbols);
 
-        var (candidatesWithCount, qty) = probabilities is null
-        ? new Wordle()
-            {
-                Slots = slots,
-                Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
-            }.GetCandidates()
-        : new WordleProbabilistic()
-            {
-                Slots = slots,
-                Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
-                Probabilities = probabilities,
-                MinProb = float.Epsilon,
-            }.GetCandidates();
+        var (candidatesWithCount, qty) = CreateWordle(probabilities, slots, symbolsQty).GetCandidates();
         var task = ctx.AddTask("Calculating", true, qty);
         var candidates = candidatesWithCount.ReportProgress(qty, 1, qty =>
             {
@@ -126,6 +114,21 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         _ => symbols,
     }).Except(symbolsQty.Where(static kvp => kvp.Value.qty is 0).Select(static kvp => kvp.Key)).ToHashSet()).ToArray()), candidates?.Count ?? -1);
 }
+
+static Wordle CreateWordle(float[,]? probabilities, (Option<char>, char[]?)[] slots, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty)
+    => probabilities is null
+        ? new Wordle()
+        {
+            Slots = slots,
+            Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
+        }
+        : new WordleProbabilistic()
+        {
+            Slots = slots,
+            Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
+            Probabilities = probabilities,
+            MinProb = float.Epsilon,
+        };
 
 static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty, Table table)
 {
@@ -214,19 +217,7 @@ static void AddPreviousRows(IList<Letter> firsts, int length, IReadOnlySet<char>
     {
         var (words, slots, symbolsQty) = SetSymbolsQty(firsts, symbols);
 
-        var (candidatesWithCount, qty) = probabilities is null
-        ? new Wordle()
-        {
-            Slots = slots,
-            Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
-        }.GetCandidates()
-        : new WordleProbabilistic()
-        {
-            Slots = slots,
-            Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
-            Probabilities = probabilities,
-            MinProb = float.Epsilon,
-        }.GetCandidates();
+        var (candidatesWithCount, qty) = CreateWordle(probabilities, slots, symbolsQty).GetCandidates();
         var task = ctx.AddTask("Calculating", true, qty);
         var candidates = candidatesWithCount.ReportProgress(qty, 1, qty =>
         {
