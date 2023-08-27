@@ -25,7 +25,15 @@
                 "publish",
                 "${workspaceFolder}/Nerdle.sln",
                 "/property:GenerateFullPaths=true",
-                "/consoleloggerparameters:NoSummary"
+                "/consoleloggerparameters:NoSummary",
+                "-p:PublishTrimmed=true",
+                "-p:PublishSingleFile=true",
+                "-p:PublishReadyToRun=true",
+                "--self-contained",
+                "--framework",
+                "net8.0",
+                "--runtime",
+                "${input:os}-${input:arch}",
             ],
             "problemMatcher": "$msCompile"
         },
@@ -173,5 +181,25 @@
                 }
             }
          },
+        {
+            "id": "os",
+            "type": "command",
+            "command": "memento.pickString",
+            "args": {
+                "id": "os",
+                "description": "OS",
+                "options": ["linux", "win"],
+            }
+        },
+        {
+            "id": "arch",
+            "type": "command",
+            "command": "memento.pickString",
+            "args": {
+                "id": "arch",
+                "description": "Architecture",
+                "options": ["x64", "arm64"],
+            }
+        },
     ]
 }

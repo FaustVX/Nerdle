@@ -6,7 +6,7 @@ public class CancelException : Exception
 { }
 
 [DebuggerStepThrough]
-public static class Ext
+public static partial class Ext
 {
     public static Func<TIn, TResult> Then<TIn, TOut, TResult>(this Func<TIn, TOut> func, Func<TIn, TOut, TResult> then)
     => i => then(i, func(i));
@@ -108,6 +108,7 @@ public static class Ext
             {
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
+            TypeInfoResolver = Saving.Context.Default,
         };
         var g = guesses
             .Select(static g => g
@@ -116,7 +117,9 @@ public static class Ext
                 .ToArray())
             .ToList();
         var saving = new Saving(length, probabilityDictionary, symbolsQty.Select(static kvp => kvp.Key).ToHashSet(), g);
-        var jsonString = JsonSerializer.Serialize(saving, options);
+#pragma warning disable IL2026 // Using member 'System.Text.Json.JsonSerializer.Serialize(Stream, Type, JsonSerializerOptions)' which has 'RequiresUnreferencedCodeAttribute' can break functionality when trimming application code. JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.
+        var jsonString = JsonSerializer.Serialize(saving, typeof(Saving), options);
+#pragma warning restore IL2026
         File.WriteAllText("output.json", jsonString);
         if (candidates.Any())
             File.WriteAllLines("output.txt", candidates.Select(static l => new string(l)));
@@ -132,8 +135,11 @@ public static class Ext
             {
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
+            TypeInfoResolver = Saving.Context.Default,
         };
-        var (length, guesses, validSymbols, file, _) = JsonSerializer.Deserialize<Saving>(File.OpenRead(path), options)!;
+#pragma warning disable IL2026 // Using member 'System.Text.Json.JsonSerializer.Deserialize(Stream, Type, JsonSerializerOptions)' which has 'RequiresUnreferencedCodeAttribute' can break functionality when trimming application code. JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.
+        var (length, guesses, validSymbols, file, _) = (Saving)JsonSerializer.Deserialize(File.OpenRead(path), typeof(Saving), options)!;
+#pragma warning restore IL2026
         return (length, guesses, validSymbols, file);
     }
 
@@ -150,8 +156,13 @@ public static class Ext
 
     public readonly static char[]? Space = [' '];
 
-    private sealed record class Saving(int Length, string? ProbabilityDictionary, HashSet<char> Symbols, List<Saving.Guess[]> Guesses)
+    private sealed partial record class Saving(int Length, string? ProbabilityDictionary, HashSet<char> Symbols, List<Saving.Guess[]> Guesses)
     {
+        [JsonSerializable(typeof(Saving))]
+        [JsonSerializable(typeof(int)), JsonSerializable(typeof(bool)), JsonSerializable(typeof(string)), JsonSerializable(typeof(HashSet<char>)), JsonSerializable(typeof(char)), JsonSerializable(typeof(List<Saving.Guess>)), JsonSerializable(typeof(Saving.Guess))]
+        public partial class Context : JsonSerializerContext
+        { }
+
         [JsonPropertyOrder(-1)]
         public int Version
         {
@@ -163,7 +174,6 @@ public static class Ext
             }
         }
 
-        public sealed record class Qty(int? Quantity, int Minimum);
         public sealed record class Guess(char Value, LetterMode Mode);
 
         public void Deconstruct(out int length, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out string? probabilityDictionary, out object? _)
