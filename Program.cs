@@ -8,7 +8,7 @@ using Optional.Unsafe;
 
 var (slotsLength, savedGuesses, symbols, probabilityPath) = Load(args);
 var probabilities = probabilityPath is not null
-    ? WordleProbalistic.CreateMarkovChain(File.ReadAllLines(probabilityPath).ToHashSet())
+    ? WordleProbabilistic.CreateMarkovChain(File.ReadAllLines(probabilityPath).ToHashSet())
     : null;
 
 static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymbols, string? probabilityPath) Load(string[] args)
@@ -89,16 +89,16 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
         var (candidatesWithCount, qty) = probabilities is null
         ? new Wordle()
             {
-                Slot = slots,
+                Slots = slots,
                 Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
-            }.GetAllLines()
-        : new WordleProbalistic()
+            }.GetCandidates()
+        : new WordleProbabilistic()
             {
-                Slot = slots,
+                Slots = slots,
                 Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
-                Probalities = probabilities,
+                Probabilities = probabilities,
                 MinProb = float.Epsilon,
-            }.GetAllLines();
+            }.GetCandidates();
         var task = ctx.AddTask("Calculating", true, qty);
         var candidates = candidatesWithCount.ReportProgress(qty, 1, qty =>
             {
@@ -217,16 +217,16 @@ static void AddPreviousRows(IList<Letter> firsts, int length, IReadOnlySet<char>
         var (candidatesWithCount, qty) = probabilities is null
         ? new Wordle()
         {
-            Slot = slots,
+            Slots = slots,
             Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
-        }.GetAllLines()
-        : new WordleProbalistic()
+        }.GetCandidates()
+        : new WordleProbabilistic()
         {
-            Slot = slots,
+            Slots = slots,
             Symbols = [.. symbolsQty.Select(static kvp => (kvp.Key, kvp.Value.qty, kvp.Value.min))],
-            Probalities = probabilities,
+            Probabilities = probabilities,
             MinProb = float.Epsilon,
-        }.GetAllLines();
+        }.GetCandidates();
         var task = ctx.AddTask("Calculating", true, qty);
         var candidates = candidatesWithCount.ReportProgress(qty, 1, qty =>
         {

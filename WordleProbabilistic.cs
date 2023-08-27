@@ -1,15 +1,15 @@
-class WordleProbalistic : Wordle
+class WordleProbabilistic : Wordle
 {
-    private readonly float[,] _probalities = default!;
+    private readonly float[,] _probabilities = default!;
     private readonly Dictionary<char, int> _indices = default!;
-    public required float[,] Probalities
+    public required float[,] Probabilities
     {
-        get => _probalities;
+        get => _probabilities;
         init
         {
             if (value.GetLength(0) is var l && !(l == InitialSymbols.Length && l == value.GetLength(1)))
                 throw new System.Diagnostics.UnreachableException();
-            _probalities = value;
+            _probabilities = value;
             _indices = InitialSymbols
                 .Select(static (s, i) => (s.symbol, i))
                 .ToDictionary(static s => s.symbol, static s => s.i);
@@ -19,12 +19,12 @@ class WordleProbalistic : Wordle
     public required float MinProb { get; init; }
 
     protected override Func<char[], bool> GetValidator(char[][] symbols)
-    => base.GetValidator(symbols).Then((input, b) => b && ProbalitiesFor(input));
+    => base.GetValidator(symbols).Then((input, b) => b && ProbabilitiesFor(input));
 
-    bool ProbalitiesFor(char[] line)
+    bool ProbabilitiesFor(char[] line)
     {
         for (var i = 1; i < line.Length; i++)
-            if (_probalities[_indices[line[i - 1]], _indices[line[i]]] < MinProb)
+            if (_probabilities[_indices[line[i - 1]], _indices[line[i]]] < MinProb)
                 return false;
         return true;
     }
@@ -43,10 +43,10 @@ class WordleProbalistic : Wordle
                 count[indices[line[i - 1]], indices[line[i]]]++;
                 sum[indices[line[i - 1]]]++;
             }
-        var probalities = new float[allowedLetters.Count, allowedLetters.Count];
-        for (int i = 0; i < allowedLetters.Count; i++)
-            for (int j = 0; j < allowedLetters.Count; j++)
-                probalities[i, j] = count[i, j] / (float)sum[i];
-        return probalities;
+        var probabilities = new float[allowedLetters.Count, allowedLetters.Count];
+        for (var i = 0; i < allowedLetters.Count; i++)
+            for (var j = 0; j < allowedLetters.Count; j++)
+                probabilities[i, j] = count[i, j] / (float)sum[i];
+        return probabilities;
     }
 }
