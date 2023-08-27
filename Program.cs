@@ -14,7 +14,19 @@ var probabilities = probabilityPath is not null
 static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymbols, string? probabilityPath) Load(string[] args)
 {
     if (args is [])
-        return Ext.Load();
+    {
+        var path = AnsiConsole.Prompt(
+        new SelectionPrompt<FileInfo>()
+        {
+            Converter = static f => f.Directory?.Name == "models"
+            ? Path.Combine("models", f.Name)
+            : f.Name,
+        }.Title("Choose a model")
+        .MoreChoicesText("[grey](Move up and down to reveal more files)[/]")
+        .If(static _ => File.Exists("output.json"), static p => p.AddChoices(new FileInfo("output.json")))
+        .AddChoices(new DirectoryInfo("models").EnumerateFiles().Where(static f => f.Extension == ".json")));
+        return Ext.Load(path.FullName);
+    }
     if (args is [var outputPath])
         return Ext.Load(outputPath);
     else

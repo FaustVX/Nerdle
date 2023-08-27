@@ -11,6 +11,11 @@ public static partial class Ext
     public static Func<TIn, TResult> Then<TIn, TOut, TResult>(this Func<TIn, TOut> func, Func<TIn, TOut, TResult> then)
     => i => then(i, func(i));
 
+    public static T If<T>(this T obj, Func<T, bool> condition, Func<T, T> @true, Func<T, T>? @false = null)
+        => condition(obj)
+        ? @true(obj)
+        : (@false ?? (static t => t))(obj);
+
     public static IEnumerable<T> ReportProgress<T>(this IEnumerable<(T value, long count)> items, long max, int steps, Func<long, bool> progress)
     {
         if (steps <= 0 || steps >= max)
