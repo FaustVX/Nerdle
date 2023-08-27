@@ -121,6 +121,7 @@ public static class Ext
         var saving = new Saving(length, probabilityDictionary, symbolsQty.ToDictionary(static kvp => kvp.Key, static kvp => new Saving.Qty(kvp.Value.qty, kvp.Value.min)), g, list);
         var jsonString = JsonSerializer.Serialize(saving, options);
         File.WriteAllText("output.json", jsonString);
+        File.WriteAllLines("output.txt", saving.Candidates);
     }
 
     internal static (int length, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary) Load()
@@ -150,7 +151,7 @@ public static class Ext
 
     public readonly static char[]? Space = [' '];
 
-    private sealed record class Saving(int Length, string? ProbabilityDictionary, Dictionary<char, Saving.Qty> Symbols, List<Saving.Guess[]> Guesses, List<string> Candidates)
+    private sealed record class Saving(int Length, string? ProbabilityDictionary, Dictionary<char, Saving.Qty> Symbols, List<Saving.Guess[]> Guesses, [property: JsonIgnore]List<string> Candidates)
     {
         [JsonPropertyOrder(-1)]
         public int Version
