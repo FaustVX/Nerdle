@@ -15,6 +15,8 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
 {
     if (args is [])
         return Ext.Load();
+    if (args is [var outputPath])
+        return Ext.Load(outputPath);
     else
     {
         var slotsLength = int.Parse(args[0]);

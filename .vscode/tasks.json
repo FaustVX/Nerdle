@@ -76,7 +76,7 @@
                 "--",
                 "${input:qty}",
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-                "${input:pickSingleFile}",
+                "${input:pickDictionary}",
             ],
             "type": "process",
             "problemMatcher": "$msCompile",
@@ -93,12 +93,14 @@
             }
         },
         {
-            "label": "run output.json",
+            "label": "run save file",
             "command": "dotnet",
             "args": [
                 "run",
                 "--configuration",
                 "${input:configuration}",
+                "--",
+                "${input:pickOutput}",
             ],
             "type": "process",
             "problemMatcher": "$msCompile",
@@ -148,13 +150,28 @@
             }
         },
         {
-            "id": "pickSingleFile",
+            "id": "pickDictionary",
             "type": "command",
             "command": "launch-file-picker.pick",
             "args": {
-                "filterExt": ".txt",
-                "canChangeFolder": true,
+                "options": {
+                    "filterExt": ".txt",
+                    "canChangeFolder": false,
+                    "path": "dictionaries",
+                }
             }
-         }
+         },
+        {
+            "id": "pickOutput",
+            "type": "command",
+            "command": "launch-file-picker.pick",
+            "args": {
+                "options": {
+                    "filterExt": ".json",
+                    "canChangeFolder": true,
+                    "path": "models",
+                }
+            }
+         },
     ]
 }

@@ -14,4 +14,10 @@
     <PackageReference Include="FaustVX.PrimaryParameter.SG" Version="1.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="dictionaries\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

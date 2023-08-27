@@ -124,8 +124,9 @@ public static class Ext
         File.WriteAllLines("output.txt", saving.Candidates);
     }
 
-    internal static (int length, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary) Load()
+    internal static (int length, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary) Load(string? path = null)
     {
+        path ??= "output.json";
         var options = new JsonSerializerOptions
         {
             WriteIndented = true,
@@ -134,7 +135,7 @@ public static class Ext
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
         };
-        var (length, guesses, validSymbols, file) = JsonSerializer.Deserialize<Saving>(File.OpenRead("output.json"), options)!;
+        var (length, guesses, validSymbols, file) = JsonSerializer.Deserialize<Saving>(File.OpenRead(path), options)!;
         return (length, guesses, validSymbols, file);
     }
 
