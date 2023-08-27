@@ -35,8 +35,8 @@ var firsts = savedGuesses?.ToList() ?? new();
 
 if (firsts is { Count: >= 1 })
     AddPreviousRows(firsts, slotsLength, symbols, table, probabilities);
-
-table.AddRow(CreateLetters(symbols, slotsLength, firsts, Enumerable.Repeat(symbols, slotsLength).ToArray()));
+else
+    table.AddRow(CreateLetters(symbols, slotsLength, firsts, Enumerable.Repeat(symbols, slotsLength).ToArray()));
 
 AnsiConsole.Clear();
 AnsiConsole.Write(table);
@@ -107,13 +107,16 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
 
     DisplaySummary(candidates, symbolsQty, table);
 
-    return (CreateLetters(symbols, length, firsts, valid.Select(s => (s switch
+    return (CreateLetters(symbols, length, firsts, CreateValidSymbols(valid, symbolsQty, symbols)), candidates?.Count ?? -1);
+}
+
+static IReadOnlySet<char>[] CreateValidSymbols(IEnumerable<(Option<char>, char[]?)> valid, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty, IReadOnlySet<char> symbols)
+    => valid.Select(s => (s switch
     {
         ({ HasValue: true } c, _) => Enumerable.Repeat(c.ValueOrDefault(), 1),
         (_, char[] cs and not [' ']) => symbols.Except(cs),
         _ => symbols,
-    }).Except(symbolsQty.Where(static kvp => kvp.Value.qty is 0).Select(static kvp => kvp.Key)).ToHashSet()).ToArray()), candidates?.Count ?? -1);
-}
+    }).Except(symbolsQty.Where(static kvp => kvp.Value.qty is 0).Select(static kvp => kvp.Key)).ToHashSet()).ToArray();
 
 static Wordle CreateWordle(float[,]? probabilities, (Option<char>, char[]?)[] slots, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty)
     => probabilities is null
@@ -202,7 +205,7 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
 
 static void AddPreviousRows(IList<Letter> firsts, int length, IReadOnlySet<char> symbols, Table table, float[,]? probabilities)
 {
-    var (symbolsQty, candidates) = AnsiConsole.Progress()
+    var (symbolsQty, valid, candidates) = AnsiConsole.Progress()
     .Columns(
     [
         new SpinnerColumn(Spinner.Known.Aesthetic),
@@ -229,15 +232,17 @@ static void AddPreviousRows(IList<Letter> firsts, int length, IReadOnlySet<char>
             table.AddRow(word);
         try
         {
-            return (symbolsQty, candidates.ToList());
+            return (symbolsQty, slots, candidates.ToList());
         }
         catch (CancelException)
         {
-            return (symbolsQty, (IReadOnlyList<char[]>?)null);
+            return (symbolsQty, slots, (IReadOnlyList<char[]>?)null);
         }
     });
 
     DisplaySummary(candidates, symbolsQty, table);
+
+    table.AddRow(CreateLetters(symbols, length, firsts, CreateValidSymbols(valid, symbolsQty, symbols)));
 }
 
 static (Letter[][] words, (Option<char>, char[]?)[] slots, Dictionary<char, (int? qty, int min)> symbolsQty) SetSymbolsQty(IEnumerable<Letter> firsts, IReadOnlySet<char> symbols)
