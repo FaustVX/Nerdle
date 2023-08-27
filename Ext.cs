@@ -118,7 +118,7 @@ public static class Ext
                 .Select(static l => new Saving.Guess(l.Selected, l.LetterMode))
                 .ToArray())
             .ToList();
-        var saving = new Saving(length, probabilityDictionary, symbolsQty.ToDictionary(static kvp => kvp.Key, static kvp => new Saving.Qty(kvp.Value.qty, kvp.Value.min)), g, list);
+        var saving = new Saving(length, probabilityDictionary, symbolsQty.Select(static kvp => kvp.Key).ToHashSet(), g, list);
         var jsonString = JsonSerializer.Serialize(saving, options);
         File.WriteAllText("output.json", jsonString);
         File.WriteAllLines("output.txt", saving.Candidates);
@@ -151,12 +151,12 @@ public static class Ext
 
     public readonly static char[]? Space = [' '];
 
-    private sealed record class Saving(int Length, string? ProbabilityDictionary, Dictionary<char, Saving.Qty> Symbols, List<Saving.Guess[]> Guesses, [property: JsonIgnore]List<string> Candidates)
+    private sealed record class Saving(int Length, string? ProbabilityDictionary, HashSet<char> Symbols, List<Saving.Guess[]> Guesses, [property: JsonIgnore]List<string> Candidates)
     {
         [JsonPropertyOrder(-1)]
         public int Version
         {
-            get => 2;
+            get => 3;
             init
             {
                 if (value != Version)
@@ -164,22 +164,18 @@ public static class Ext
             }
         }
 
-        [JsonIgnore]
-        public IReadOnlySet<char> ValidSymbols
-        => Symbols.Keys.ToHashSet();
-
         public sealed record class Qty(int? Quantity, int Minimum);
         public sealed record class Guess(char Value, LetterMode Mode);
 
         public void Deconstruct(out int length, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out string? probabilityDictionary)
         {
             length = Length;
-            var vs = validSymbols = ValidSymbols;
+            validSymbols = Symbols;
             guesses = Guesses.Select(gs => gs.Select(g => new Letter()
             {
                 Previous = null!,
-                Symbols = vs,
-                ValidSymbols = vs,
+                Symbols = Symbols,
+                ValidSymbols = Symbols,
                 Selected = g.Value,
                 LetterMode = g.Mode,
             }).ToArray())
@@ -197,7 +193,7 @@ public static class Ext
                     last = new()
                     {
                         Previous = last,
-                        Symbols = vs,
+                        Symbols = Symbols,
                         ValidSymbols = letter.ValidSymbols,
                         Selected = letter.Selected,
                         LetterMode = letter.LetterMode,
