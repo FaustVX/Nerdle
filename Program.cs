@@ -228,13 +228,14 @@ static void AddPreviousRows(IList<Letter> firsts, int length, IReadOnlySet<char>
         {
             task.Value = qty;
             return !(AnsiConsole.Console.Input.IsKeyAvailable() && AnsiConsole.Console.Input.ReadKey(intercept: true) is { Key: ConsoleKey.Escape });
-        });
+        }).Memorize();
 
         foreach (var word in words)
             table.AddRow(word);
         try
         {
-            return (symbolsQty, slots, candidates.ToList());
+            File.WriteAllLines("output.txt", candidates.Select(static l => new string(l)));
+            return (symbolsQty, slots, candidates);
         }
         catch (CancelException)
         {

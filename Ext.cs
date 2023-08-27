@@ -109,19 +109,17 @@ public static class Ext
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
         };
-        var list = candidates
-            .Select(static c => new string(c))
-            .ToList();
         var g = guesses
             .Select(static g => g
                 .SelectAll(static l => l.Next!, static l =>l is not null)
                 .Select(static l => new Saving.Guess(l.Selected, l.LetterMode))
                 .ToArray())
             .ToList();
-        var saving = new Saving(length, probabilityDictionary, symbolsQty.Select(static kvp => kvp.Key).ToHashSet(), g, list);
+        var saving = new Saving(length, probabilityDictionary, symbolsQty.Select(static kvp => kvp.Key).ToHashSet(), g);
         var jsonString = JsonSerializer.Serialize(saving, options);
         File.WriteAllText("output.json", jsonString);
-        File.WriteAllLines("output.txt", saving.Candidates);
+        if (candidates.Any())
+            File.WriteAllLines("output.txt", candidates.Select(static l => new string(l)));
     }
 
     internal static (int length, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary) Load(string? path = null)
@@ -135,7 +133,7 @@ public static class Ext
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
         };
-        var (length, guesses, validSymbols, file) = JsonSerializer.Deserialize<Saving>(File.OpenRead(path), options)!;
+        var (length, guesses, validSymbols, file, _) = JsonSerializer.Deserialize<Saving>(File.OpenRead(path), options)!;
         return (length, guesses, validSymbols, file);
     }
 
@@ -152,7 +150,7 @@ public static class Ext
 
     public readonly static char[]? Space = [' '];
 
-    private sealed record class Saving(int Length, string? ProbabilityDictionary, HashSet<char> Symbols, List<Saving.Guess[]> Guesses, [property: JsonIgnore]List<string> Candidates)
+    private sealed record class Saving(int Length, string? ProbabilityDictionary, HashSet<char> Symbols, List<Saving.Guess[]> Guesses)
     {
         [JsonPropertyOrder(-1)]
         public int Version
@@ -168,7 +166,7 @@ public static class Ext
         public sealed record class Qty(int? Quantity, int Minimum);
         public sealed record class Guess(char Value, LetterMode Mode);
 
-        public void Deconstruct(out int length, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out string? probabilityDictionary)
+        public void Deconstruct(out int length, out IReadOnlyList<Letter> guesses, out IReadOnlySet<char> validSymbols, out string? probabilityDictionary, out object? _)
         {
             length = Length;
             validSymbols = Symbols;
@@ -183,6 +181,7 @@ public static class Ext
             .Select(CreateLetter)
             .ToList();
             probabilityDictionary = ProbabilityDictionary;
+            _ = default;
 
             Letter CreateLetter(Letter[] letters)
             {
