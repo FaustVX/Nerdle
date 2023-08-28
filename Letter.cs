@@ -80,7 +80,7 @@ partial class Letter: IRenderable
             LetterMode.InvalideLetter => (Color.Grey, Color.Black),
             _ => throw new UnreachableException(),
         };
-        var decoration = IsLetterSelected ? Decoration.Italic | Decoration.Underline | Decoration.SlowBlink : default;
+        var decoration = IsLetterSelected ? Decoration.Italic | Decoration.Underline : default;
         if (!ValidSymbols.Contains(Selected))
             decoration |= Decoration.Strikethrough;
         yield return new(Selected.ToString(), new(background: background, foreground: foreground, decoration: RenderDecoration ? decoration : null));
