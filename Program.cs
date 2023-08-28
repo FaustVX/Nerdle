@@ -15,17 +15,48 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
 {
     if (args is [])
     {
-        var path = AnsiConsole.Prompt(
-        new SelectionPrompt<FileInfo>()
+        if (AnsiConsole.Prompt(
+            new SelectionPrompt<bool>()
+            {
+                Title = "Select a model ?",
+                Converter = static b => b ? "Yes" : "No",
+            }
+            .AddChoices(true, false)))
         {
-            Converter = static f => f.Directory?.Name == "models"
-            ? Path.Combine("models", f.Name)
-            : f.Name,
-        }.Title("Choose a model")
-        .MoreChoicesText("[grey](Move up and down to reveal more files)[/]")
-        .If(static _ => File.Exists("output.json"), static p => p.AddChoices(new FileInfo("output.json")))
-        .AddChoices(new DirectoryInfo("models").EnumerateFiles().Where(static f => f.Extension == ".json")));
-        return Ext.Load(path.FullName);
+            var path = AnsiConsole.Prompt(
+            new SelectionPrompt<FileInfo>()
+            {
+                Title = "Choose a model",
+                MoreChoicesText = "[grey](Move up and down to reveal more files)[/]",
+                Converter = static f => f.Directory?.Name == "models"
+                ? Path.Combine("models", f.Name)
+                : f.Name,
+            }
+            .If(static _ => File.Exists("output.json"), static p => p.AddChoices(new FileInfo("output.json")))
+            .AddChoices(new DirectoryInfo("models").EnumerateFiles().Where(static f => f.Extension == ".json")));
+            return Ext.Load(path.FullName);
+        }
+        else
+        {
+            var length = AnsiConsole.Ask("Number of slots", 5);
+            var symbols = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                {
+                    Title = "Choose a symbols list",
+                }
+                .AddChoices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "1234567890+-*/=", "1234567890+-*/()²³="))
+            .ToHashSet();
+            var path = AnsiConsole.Prompt(
+                new SelectionPrompt<FileInfo>()
+                {
+                    Title = "Choose a dictionary",
+                    MoreChoicesText = "[grey](Move up and down to reveal more files)[/]",
+                    Converter = static f => f.Exists ? f.Name : "None",
+                }
+                .AddChoices(new FileInfo("_"))
+                .AddChoices(new DirectoryInfo("dictionaries").EnumerateFiles().Where(static f => f.Extension == ".txt")));
+            return (length, default, symbols, path.Exists ? path.FullName : default);
+        }
     }
     if (args is [var outputPath])
         return Ext.Load(outputPath);
@@ -149,7 +180,6 @@ static Wordle CreateWordle(float[,]? probabilities, (Option<char>, char[]?)[] sl
 
 static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty, Table table)
 {
-
     var height = 0;
     var offset = 0;
     do
