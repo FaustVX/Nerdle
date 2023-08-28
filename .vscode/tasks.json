@@ -56,81 +56,6 @@
                 "run",
                 "--configuration",
                 "${input:configuration}",
-                "--",
-                "${input:qty}",
-                "${input:symbols}",
-            ],
-            "type": "process",
-            "problemMatcher": "$msCompile",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false,
-            },
-            "runOptions": {
-                "instanceLimit": 1000, // big number for no limit
-            }
-        },
-        {
-            "label": "run prompt model",
-            "command": "dotnet",
-            "args": [
-                "run",
-                "--configuration",
-                "${input:configuration}",
-            ],
-            "type": "process",
-            "problemMatcher": "$msCompile",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false,
-            },
-            "runOptions": {
-                "instanceLimit": 1000, // big number for no limit
-            }
-        },
-        {
-            "label": "run with dictionary",
-            "command": "dotnet",
-            "args": [
-                "run",
-                "--configuration",
-                "${input:configuration}",
-                "--",
-                "${input:qty}",
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-                "${input:pickDictionary}",
-            ],
-            "type": "process",
-            "problemMatcher": "$msCompile",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false,
-            },
-            "runOptions": {
-                "instanceLimit": 1000, // big number for no limit
-            }
-        },
-        {
-            "label": "run save file",
-            "command": "dotnet",
-            "args": [
-                "run",
-                "--configuration",
-                "${input:configuration}",
-                "--",
-                "${input:pickOutput}",
             ],
             "type": "process",
             "problemMatcher": "$msCompile",
@@ -149,26 +74,6 @@
     ],
     "inputs": [
         {
-            "id": "qty",
-            "type": "command",
-            "command": "memento.promptString",
-            "args": {
-                "id": "qty",
-                "description": "Word Length",
-                "default": "5",
-            }
-        },
-        {
-            "id": "symbols",
-            "type": "command",
-            "command": "memento.pickString",
-            "args": {
-                "id": "symbols",
-                "description": "Available symbols",
-                "options": ["ABCDEFGHIJKLMNOPQRSTUVWXYZ", "1234567890+-*/=", "1234567890+-*/()²³="],
-            }
-        },
-        {
             "id": "configuration",
             "type": "command",
             "command": "memento.pickString",
@@ -179,30 +84,6 @@
                 "default": "Release",
             }
         },
-        {
-            "id": "pickDictionary",
-            "type": "command",
-            "command": "launch-file-picker.pick",
-            "args": {
-                "options": {
-                    "filterExt": ".txt",
-                    "canChangeFolder": false,
-                    "path": "dictionaries",
-                }
-            }
-         },
-        {
-            "id": "pickOutput",
-            "type": "command",
-            "command": "launch-file-picker.pick",
-            "args": {
-                "options": {
-                    "filterExt": ".json",
-                    "canChangeFolder": true,
-                    "path": "models",
-                }
-            }
-         },
         {
             "id": "os",
             "type": "command",
