@@ -105,6 +105,9 @@ public static partial class Ext
     => new(values.GetEnumerator());
 
     internal static void Save(IReadOnlyList<Letter> guesses, int length, IEnumerable<char[]> candidates, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty, string? probabilityDictionary)
+        => Save(guesses, length, candidates, symbolsQty.Select(static kvp => kvp.Key).ToHashSet(), probabilityDictionary);
+
+    internal static void Save(IReadOnlyList<Letter> guesses, int length, IEnumerable<char[]> candidates, HashSet<char> symbols, string? probabilityDictionary)
     {
         var options = new JsonSerializerOptions
         {
@@ -121,7 +124,7 @@ public static partial class Ext
                 .Select(static l => new Saving.Guess(l.Selected, l.LetterMode))
                 .ToArray())
             .ToList();
-        var saving = new Saving(length, probabilityDictionary, symbolsQty.Select(static kvp => kvp.Key).ToHashSet(), g);
+        var saving = new Saving(length, probabilityDictionary, symbols, g);
 #pragma warning disable IL2026 // Using member 'System.Text.Json.JsonSerializer.Serialize(Stream, Type, JsonSerializerOptions)' which has 'RequiresUnreferencedCodeAttribute' can break functionality when trimming application code. JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.
         var jsonString = JsonSerializer.Serialize(saving, typeof(Saving), options);
 #pragma warning restore IL2026

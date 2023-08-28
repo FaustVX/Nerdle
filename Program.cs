@@ -55,6 +55,7 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 }
                 .AddChoices(new FileInfo("_"))
                 .AddChoices(new DirectoryInfo("dictionaries").EnumerateFiles().Where(static f => f.Extension == ".txt")));
+            Ext.Save(Array.Empty<Letter>(), length, Array.Empty<char[]>(), symbols, path.Exists ? path.FullName : default);
             return (length, default, symbols, path.Exists ? path.FullName : default);
         }
     }
@@ -67,6 +68,7 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
         var probabilityPath = args is [_, _, var path]
             ? path
             : null;
+        Ext.Save(Array.Empty<Letter>(), slotsLength, Array.Empty<char[]>(), symbols, probabilityPath);
         return (slotsLength, default, symbols, probabilityPath);
     }
 }
