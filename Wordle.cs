@@ -50,7 +50,7 @@ class Wordle : Nerdle<char>
         var r = line.IndexOf(')');
         var q = line.IndexOf('²');
         var c = line.IndexOf('³');
-        return !(a != -1 || s > 0 || m != -1 || d != -1 || e != -1 || l != -1 || r != -1 || q != -1 || c != -1);
+        return !(a > 0 || s > 0 || m != -1 || d != -1 || e != -1 || l != -1 || r != -1 || q != -1 || c != -1);
     }
 
     static bool CheckSymbolOnTheLeft(ReadOnlySpan<char> line)
@@ -67,7 +67,7 @@ class Wordle : Nerdle<char>
     }
 
     static bool CheckFirstAndLast(ReadOnlySpan<char> line)
-    => line[0] is >= '0' and <= '9' or '(' or '-' && line[^1] is >= '0' and <= '9';
+    => line[0] is >= '0' and <= '9' or '(' or '-' or '+' && line[^1] is >= '0' and <= '9';
 
     static bool CheckBeforeAndAfterOperator(ReadOnlySpan<char> line)
     {
