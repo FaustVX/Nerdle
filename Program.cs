@@ -32,7 +32,7 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 ? Path.Combine("models", f.Name)
                 : f.Name,
             }
-            .If(static _ => File.Exists("output.json"), static p => p.AddChoices(new FileInfo("output.json")))
+            .If(File.Exists("output.json"), static p => p.AddChoices(new FileInfo("output.json")))
             .AddChoices(new DirectoryInfo("models").EnumerateFiles().Where(static f => f.Extension == ".json")));
             return Ext.Load(path.FullName);
         }
