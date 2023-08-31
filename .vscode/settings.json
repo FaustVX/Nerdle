@@ -7,5 +7,6 @@
     "files.readonlyInclude": {
         "models/**": true,
         "dictionaries/**": true,
-    }
+    },
+    "dotnet.preferRuntimeFromSDK": true
 }
