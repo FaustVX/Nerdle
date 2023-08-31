@@ -47,7 +47,12 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
         }
         else
         {
-            var length = AnsiConsole.Ask("Number of slots", 5);
+            var length = AnsiConsole.Prompt(
+                new SelectionPrompt<int>()
+                {
+                    Title = "Number of slots",
+                }
+                .AddChoices(5, 6, 7, 8, 9, 10));
             var symbols = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                 {
