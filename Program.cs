@@ -145,19 +145,11 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
     ])
     .Start(ctx =>
     {
-        var (words, slots, symbolsQty) = SetSymbolsQty(firsts, symbols);
-
-        var (candidatesWithCount, qty) = CreateWordle(probabilities, slots, symbolsQty).GetCandidates();
-        var task = ctx.AddTask("Calculating", true, qty);
-        var candidates = candidatesWithCount.ReportProgress(qty, 1, qty =>
-            {
-                task.Value = qty;
-                return !(AnsiConsole.Console.Input.IsKeyAvailable() && AnsiConsole.Console.Input.ReadKey(intercept: true) is { Key: ConsoleKey.Escape });
-            }).Memorize();
+        var (_, candidates, symbolsQty, slots) = AddTask(firsts, symbols, probabilities, ctx);
         try
         {
             Ext.Save((List<Letter>)firsts, length, candidates, symbolsQty, probabilityPath);
-            return (symbolsQty, (IReadOnlyList<char[]>)candidates, slots);
+            return (symbolsQty, candidates, slots);
         }
         catch (CancelException)
         {
@@ -169,6 +161,20 @@ static (IEnumerable<Letter> letters, int candidates) AddRow(IList<Letter> firsts
     DisplaySummary(candidates, symbolsQty, table);
 
     return (CreateLetters(symbols, length, firsts, CreateValidSymbols(valid, symbolsQty, symbols)), candidates?.Count ?? -1);
+}
+
+static (IEnumerable<Letter[]> words, IReadOnlyList<char[]> candidates, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty, IEnumerable<(Option<char>, char[]?)> slots) AddTask(IList<Letter> firsts, IReadOnlySet<char> symbols, float[,]? probabilities, ProgressContext ctx)
+{
+    var (words, slots, symbolsQty) = SetSymbolsQty(firsts, symbols);
+
+    var (candidatesWithCount, qty) = CreateWordle(probabilities, slots, symbolsQty).GetCandidates();
+    var task = ctx.AddTask("Calculating", true, qty);
+    var candidates = candidatesWithCount.ReportProgress(qty, 1, qty =>
+        {
+            task.Value = qty;
+            return !(AnsiConsole.Console.Input.IsKeyAvailable() && AnsiConsole.Console.Input.ReadKey(intercept: true) is { Key: ConsoleKey.Escape });
+        }).Memorize();
+    return (words, candidates, symbolsQty, slots);
 }
 
 static IReadOnlySet<char>[] CreateValidSymbols(IEnumerable<(Option<char>, char[]?)> valid, IReadOnlyDictionary<char, (int? qty, int min)> symbolsQty, IReadOnlySet<char> symbols)
@@ -278,15 +284,7 @@ static void AddPreviousRows(IList<Letter> firsts, int length, IReadOnlySet<char>
     ])
     .Start(ctx =>
     {
-        var (words, slots, symbolsQty) = SetSymbolsQty(firsts, symbols);
-
-        var (candidatesWithCount, qty) = CreateWordle(probabilities, slots, symbolsQty).GetCandidates();
-        var task = ctx.AddTask("Calculating", true, qty);
-        var candidates = candidatesWithCount.ReportProgress(qty, 1, qty =>
-        {
-            task.Value = qty;
-            return !(AnsiConsole.Console.Input.IsKeyAvailable() && AnsiConsole.Console.Input.ReadKey(intercept: true) is { Key: ConsoleKey.Escape });
-        }).Memorize();
+        var (words, candidates, symbolsQty, slots) = AddTask(firsts, symbols, probabilities, ctx);
 
         foreach (var word in words)
             table.AddRow(word);
