@@ -1,7 +1,7 @@
 {
   "Version": 3,
   "Length": 5,
-  "ProbabilityDictionary": "dictionaries\\liste.de.mots.francais.frgut.txt",
+  "ProbabilityDictionary": "dictionaries/liste.de.mots.francais.frgut.txt",
   "Symbols": [
     "A",
     "B",

@@ -1,7 +1,7 @@
 {
   "Version": 3,
   "Length": 5,
-  "ProbabilityDictionary": "dictionaries\\enable1.txt",
+  "ProbabilityDictionary": "dictionaries/enable1.txt",
   "Symbols": [
     "A",
     "B",
