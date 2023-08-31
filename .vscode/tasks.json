@@ -71,6 +71,26 @@
                 "instanceLimit": 1000, // big number for no limit
             }
         },
+        {
+            "label": "run published",
+            "command": "bin/Release/net8.0/${input:os}-${input:arch}/publish/Nerdle",
+            "type": "shell",
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false,
+            },
+            "runOptions": {
+                "instanceLimit": 1000, // big number for no limit
+            },
+            "dependsOn": [
+                "publish"
+            ]
+        },
     ],
     "inputs": [
         {
