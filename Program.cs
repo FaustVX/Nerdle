@@ -3,8 +3,17 @@ using Spectre.Console;
 using Optional;
 using Optional.Unsafe;
 
+// format for args = // Empty
+
+// format for args = path
+//     savegame path ^~~^
+
 // format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 //     nerdle length ^ ^~~~~~~~~~~~~~~~~~~~~~~~~^ all symbols
+
+//         all symbols v~~~~~~~~~~~~~~~~~~~~~~~~v
+// format for args = 5 ABCDEFGHIJKLMNOPQRSTUVWXYZ path
+//     nerdle length ^            dictionary path ^~~^
 
 var (slotsLength, savedGuesses, symbols, probabilityPath) = Load(args);
 var probabilities = probabilityPath is not null
