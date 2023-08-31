@@ -27,3 +27,4 @@ jobs:
         with:
           name: Nerdle-${{inputs.os}}-${{inputs.arch}}
           path: bin/Release/net8.0/${{inputs.os}}-${{inputs.arch}}/publish
+          retention-days: 1
