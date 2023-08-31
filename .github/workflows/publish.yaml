@@ -25,5 +25,5 @@ jobs:
       - run: dotnet publish -p:PublishTrimmed=true -p:PublishSingleFile=true -p:PublishReadyToRun=true --self-contained --framework net8.0 --runtime ${{inputs.os}}-${{inputs.arch}}
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{inputs.os}}-${{inputs.arch}}
+          name: Nerdle-${{inputs.os}}-${{inputs.arch}}
           path: bin/Release/net8.0/${{inputs.os}}-${{inputs.arch}}/publish
