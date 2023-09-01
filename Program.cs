@@ -207,7 +207,10 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
     do
     {
         height = AnsiConsole.Console.Profile.Height - 3;
-        var path = new TextPath("./output.json").Centered();
+        var pathJson = new TextPath("./output.json").RightJustified();
+        var pathTxt = new TextPath("./output.txt").LeftJustified();
+        var path = new Layout()
+            .SplitColumns(new(pathJson), new(new Markup("")), new(pathTxt));
         var panel = candidates is [] or null
             ? new Panel(path) { Header = new($"Output [red](cancelled)[/]"), Expand = true }
             : new Panel(new Rows(path, new Rows(candidates.Skip(offset).Take(height).Select(static n => new Text(new(n)))))) { Header = new($"Output ({offset} / {candidates.Count})"), Expand = true };
