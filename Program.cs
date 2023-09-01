@@ -217,6 +217,13 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
         symbolsGrid.AddColumn("Quantity");
         symbolsGrid.AddColumn("Minimum");
         symbolsQty
+            .OrderBy(static s => s.Value switch
+            {
+                (null, not 0) => 1,
+                (0, _) => 3,
+                (> 0, _) => 0,
+                _ => 2,
+            })
             .Select(GenerateRow)
             .Execute(symbolsGrid.AddRow);
 
