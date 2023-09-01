@@ -220,13 +220,7 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
         symbolsGrid.AddColumn("Quantity");
         symbolsGrid.AddColumn("Minimum");
         symbolsQty
-            .OrderBy(static s => s.Value switch
-            {
-                (null, not 0) => 1,
-                (0, _) => 3,
-                (> 0, _) => 0,
-                _ => 2,
-            })
+            .OrderBy(static s => SwitchSymbolsQty(s.Value, 1, 3, 0, 2))
             .Select(GenerateRow)
             .Execute(symbolsGrid.AddRow);
 
@@ -239,16 +233,19 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
 
         static IEnumerable<Markup> GenerateRow(KeyValuePair<char, (int? qty, int min)> kvp)
         {
-            yield return new(kvp.Key.ToString(), kvp.Value switch
-            {
-                (null, not 0) => new(Color.Yellow),
-                (0, _) => new(Color.Red),
-                (> 0, _) => new(Color.Green),
-                _ => null,
-            });
+            yield return new(kvp.Key.ToString(), SwitchSymbolsQty<Style?>(kvp.Value, new(Color.Yellow), new(Color.Red), new(Color.Green), null));
             yield return new(kvp.Value.qty?.ToString() ?? "?");
             yield return new(kvp.Value.min.ToString());
         }
+
+        static T SwitchSymbolsQty<T>((int? qty, int min) qty, T minQty, T notPresent, T qtyFixed, T qtyUnknows)
+            => qty switch
+                {
+                    (null, not 0) => minQty,
+                    (0, _) => notPresent,
+                    (> 0, _) => qtyFixed,
+                    _ => qtyUnknows,
+                };
     } while (ProcessKey(AnsiConsole.Console.Input.ReadKey(intercept: true).GetValueOrDefault().Key, ref offset, (candidates?.Count ?? 0) - height, height - 1));
 
     static bool ProcessKey(ConsoleKey key, ref int offset, int length, int move)
