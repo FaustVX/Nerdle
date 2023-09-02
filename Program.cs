@@ -37,9 +37,21 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
             {
                 Title = "Choose a model",
                 MoreChoicesText = "[grey](Move up and down to reveal more files)[/]",
-                Converter = static f => f.Directory?.Name == "models"
-                ? Path.Combine("models", f.Name)
-                : f.Name,
+                Converter = static f =>
+                {
+                    var name = f.Directory?.Name == "models"
+                        ? Path.Combine("models", f.Name)
+                        : f.Name;
+                    try
+                    {
+                        var (length, guesses, validSymbols, probabilityDictionary) = Ext.Load(f.FullName);
+                        return $"[green]{name}[/] [[[orange1]{length}[/] [yellow]{string.Concat(validSymbols)}[/] [blue]{guesses.Count}[/] guesse(s) [purple]{Path.GetFileName(probabilityDictionary) ?? "-"}[/]]]";
+                    }
+                    catch
+                    {
+                        return $"[green]{name}[/] [[[red]error loading file[/]]]";
+                    }
+                },
             }
             .If(File.Exists("output.json"), static p => p.AddChoices(new FileInfo("output.json")))
             .AddChoices(new DirectoryInfo("models").EnumerateFiles().Where(static f => f.Extension == ".json")));
