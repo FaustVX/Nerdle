@@ -178,7 +178,7 @@ public static partial class Ext
             init
             {
                 if (value != Version)
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException($"Incorrect version number. Provided {value}, Expected {Version}");
             }
         }
 
