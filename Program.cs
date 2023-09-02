@@ -39,14 +39,14 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 MoreChoicesText = "[grey](Move up and down to reveal more files)[/]",
                 Converter = static f =>
                 {
-                    var name = new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(f.FullName)).ToString();
+                    var name = MakeRelativeUri(f.FullName, Environment.GetCommandLineArgs()[0]);
                     try
                     {
                         var (length, guesses, validSymbols, probabilityDictionary) = Ext.Load(f.FullName);
                         var dict = probabilityDictionary is not null
-                            ? new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(probabilityDictionary)).ToString()
+                            ? MakeRelativeUri(probabilityDictionary, Environment.GetCommandLineArgs()[0])
                             : "-";
-                        return $"[green]{name}[/] [[[orange1]{length}[/] [yellow]{string.Concat(validSymbols)}[/] [blue]{guesses.Count}[/] guesse(s) [purple]{dict}[/]]]";
+                        return $"[green link]{name}[/] [[[orange1]{length}[/] [yellow]{string.Concat(validSymbols)}[/] [blue]{guesses.Count}[/] guess(es) [purple link]{dict}[/]]]";
                     }
                     catch
                     {
@@ -78,13 +78,16 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 {
                     Title = "Choose a dictionary",
                     MoreChoicesText = "[grey](Move up and down to reveal more files)[/]",
-                    Converter = static f => f.Exists ? new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(f.FullName)).ToString() : "None",
+                    Converter = static f => f.Exists ? MakeRelativeUri(f.FullName, Environment.GetCommandLineArgs()[0]) : "None",
                 }
                 .AddChoices(new FileInfo("_"))
                 .AddChoices(new DirectoryInfo("dictionaries").EnumerateFiles("*.txt", SearchOption.AllDirectories)));
             Ext.Save(Array.Empty<Letter>(), length, Array.Empty<char[]>(), symbols, path.Exists ? path.FullName : default);
-            return (length, default, symbols, path.Exists ? new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(path.FullName)).ToString() : default);
+            return (length, default, symbols, path.Exists ? MakeRelativeUri(path.FullName, Environment.GetCommandLineArgs()[0]) : default);
         }
+
+        static string MakeRelativeUri(string destination, string relativeTo)
+        => new Uri(relativeTo).MakeRelativeUri(new(new FileInfo(destination).FullName)).ToString();
     }
     if (args is [var outputPath])
         return Ext.Load(outputPath);
