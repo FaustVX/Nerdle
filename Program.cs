@@ -65,13 +65,13 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 {
                     Title = "Number of slots",
                 }
-                .AddChoices(5, 6, 7, 8, 9, 10));
+                .AddChoices(Setting.Instance.Slots));
             var symbols = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                 {
                     Title = "Choose a symbols list",
                 }
-                .AddChoices(File.ReadAllLines("symbols.txt")))
+                .AddChoices(Setting.Instance.Symbols))
             .ToHashSet();
             var path = AnsiConsole.Prompt(
                 new SelectionPrompt<FileInfo>()
@@ -238,7 +238,8 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
         symbolsGrid.AddColumn("Quantity");
         symbolsGrid.AddColumn("Minimum");
         symbolsQty
-            .OrderBy(static s => SwitchSymbolsQty(s.Value, 1, 3, 0, 2))
+            .AsEnumerable()
+            .If(Setting.Instance.SortSymbols, static s => s.OrderBy(static s => SwitchSymbolsQty(s.Value, 1, 3, 0, 2)))
             .Select(GenerateRow)
             .Execute(symbolsGrid.AddRow);
 

@@ -116,7 +116,7 @@ public static partial class Ext
             {
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
-            TypeInfoResolver = Saving.Context.Default,
+            TypeInfoResolver = JSONContext.Default,
         };
         var g = guesses
             .Select(static g => g
@@ -143,10 +143,11 @@ public static partial class Ext
             {
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             },
-            TypeInfoResolver = Saving.Context.Default,
+            TypeInfoResolver = JSONContext.Default,
         };
+        using var utf8Json = File.OpenRead(path);
 #pragma warning disable IL2026 // Using member 'System.Text.Json.JsonSerializer.Deserialize(Stream, Type, JsonSerializerOptions)' which has 'RequiresUnreferencedCodeAttribute' can break functionality when trimming application code. JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.
-        var (length, guesses, validSymbols, file, _) = (Saving)JsonSerializer.Deserialize(File.OpenRead(path), typeof(Saving), options)!;
+        var (length, guesses, validSymbols, file, _) = (Saving)JsonSerializer.Deserialize(utf8Json, typeof(Saving), options)!;
 #pragma warning restore IL2026
         return (length, guesses, validSymbols, file);
     }
@@ -164,13 +165,8 @@ public static partial class Ext
 
     public readonly static char[]? Space = [' '];
 
-    private sealed partial record class Saving(int Length, string? ProbabilityDictionary, HashSet<char> Symbols, List<Saving.Guess[]> Guesses)
+    internal sealed record class Saving(int Length, string? ProbabilityDictionary, HashSet<char> Symbols, List<Saving.Guess[]> Guesses)
     {
-        [JsonSerializable(typeof(Saving))]
-        [JsonSerializable(typeof(int)), JsonSerializable(typeof(bool)), JsonSerializable(typeof(string)), JsonSerializable(typeof(HashSet<char>)), JsonSerializable(typeof(char)), JsonSerializable(typeof(List<Saving.Guess>)), JsonSerializable(typeof(Saving.Guess))]
-        public partial class Context : JsonSerializerContext
-        { }
-
         [JsonPropertyOrder(-1)]
         public int Version
         {
@@ -221,4 +217,10 @@ public static partial class Ext
             }
         }
     }
+
+    [JsonSerializable(typeof(Saving)), JsonSerializable(typeof(Setting))]
+    [JsonSerializable(typeof(int)), JsonSerializable(typeof(bool)), JsonSerializable(typeof(string)), JsonSerializable(typeof(HashSet<char>)), JsonSerializable(typeof(char)), JsonSerializable(typeof(List<Saving.Guess>)), JsonSerializable(typeof(Saving.Guess))]
+    [JsonSerializable(typeof(IReadOnlySet<IReadOnlySet<char>>)), JsonSerializable(typeof(IReadOnlySet<char>)), JsonSerializable(typeof(char))]
+    internal partial class JSONContext : JsonSerializerContext
+    { }
 }
