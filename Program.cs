@@ -71,7 +71,7 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 {
                     Title = "Choose a symbols list",
                 }
-                .AddChoices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "1234567890+-*/=", "1234567890+-*/()²³="))
+                .AddChoices(File.ReadAllLines("symbols.txt")))
             .ToHashSet();
             var path = AnsiConsole.Prompt(
                 new SelectionPrompt<FileInfo>()
