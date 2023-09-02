@@ -80,7 +80,7 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                     MoreChoicesText = "[grey](Move up and down to reveal more files)[/]",
                     Converter = static f => f.Exists ? new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(f.FullName)).ToString() : "None",
                 }
-                .AddChoices(new FileInfo(Path.GetInvalidFileNameChars()[0].ToString()))
+                .AddChoices(new FileInfo("_"))
                 .AddChoices(new DirectoryInfo("dictionaries").EnumerateFiles("*.txt", SearchOption.AllDirectories)));
             Ext.Save(Array.Empty<Letter>(), length, Array.Empty<char[]>(), symbols, path.Exists ? path.FullName : default);
             return (length, default, symbols, path.Exists ? new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(path.FullName)).ToString() : default);
