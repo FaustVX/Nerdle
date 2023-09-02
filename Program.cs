@@ -46,7 +46,7 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                         var dict = probabilityDictionary is not null
                             ? MakeRelativeUri(probabilityDictionary, Environment.GetCommandLineArgs()[0])
                             : "-";
-                        return $"[green link]{name}[/] [[[orange1]{length}[/] [yellow]{string.Concat(validSymbols)}[/] [blue]{guesses.Count}[/] guess(es) [purple link]{dict}[/]]]";
+                        return $"[green]{name}[/] [[[orange1]{length}[/] [yellow]{string.Concat(validSymbols)}[/] [blue]{guesses.Count}[/] guess(es) [purple]{dict}[/]]]";
                     }
                     catch
                     {
