@@ -39,13 +39,14 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 MoreChoicesText = "[grey](Move up and down to reveal more files)[/]",
                 Converter = static f =>
                 {
-                    var name = f.Directory?.Name == "models"
-                        ? Path.Combine("models", f.Name)
-                        : f.Name;
+                    var name = new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(f.FullName)).ToString();
                     try
                     {
                         var (length, guesses, validSymbols, probabilityDictionary) = Ext.Load(f.FullName);
-                        return $"[green]{name}[/] [[[orange1]{length}[/] [yellow]{string.Concat(validSymbols)}[/] [blue]{guesses.Count}[/] guesse(s) [purple]{Path.GetFileName(probabilityDictionary) ?? "-"}[/]]]";
+                        var dict = probabilityDictionary is not null
+                            ? new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(probabilityDictionary)).ToString()
+                            : "-";
+                        return $"[green]{name}[/] [[[orange1]{length}[/] [yellow]{string.Concat(validSymbols)}[/] [blue]{guesses.Count}[/] guesse(s) [purple]{dict}[/]]]";
                     }
                     catch
                     {
@@ -54,7 +55,7 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 },
             }
             .If(File.Exists("output.json"), static p => p.AddChoices(new FileInfo("output.json")))
-            .AddChoices(new DirectoryInfo("models").EnumerateFiles().Where(static f => f.Extension == ".json")));
+            .AddChoices(new DirectoryInfo("models").EnumerateFiles("*.json", SearchOption.AllDirectories)));
             return Ext.Load(path.FullName);
         }
         else
@@ -77,12 +78,12 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 {
                     Title = "Choose a dictionary",
                     MoreChoicesText = "[grey](Move up and down to reveal more files)[/]",
-                    Converter = static f => f.Exists ? f.Name : "None",
+                    Converter = static f => f.Exists ? new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(f.FullName)).ToString() : "None",
                 }
-                .AddChoices(new FileInfo("_"))
-                .AddChoices(new DirectoryInfo("dictionaries").EnumerateFiles().Where(static f => f.Extension == ".txt")));
+                .AddChoices(new FileInfo(Path.GetInvalidFileNameChars()[0].ToString()))
+                .AddChoices(new DirectoryInfo("dictionaries").EnumerateFiles("*.txt", SearchOption.AllDirectories)));
             Ext.Save(Array.Empty<Letter>(), length, Array.Empty<char[]>(), symbols, path.Exists ? path.FullName : default);
-            return (length, default, symbols, path.Exists ? path.FullName : default);
+            return (length, default, symbols, path.Exists ? new Uri(Environment.GetCommandLineArgs()[0]).MakeRelativeUri(new(path.FullName)).ToString() : default);
         }
     }
     if (args is [var outputPath])

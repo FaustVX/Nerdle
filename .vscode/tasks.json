@@ -73,7 +73,10 @@
         },
         {
             "label": "run published",
-            "command": "bin/Release/net8.0/${input:os}-${input:arch}/publish/Nerdle",
+            "options": {
+                "cwd": "bin/Release/net8.0/${input:os}-${input:arch}/publish"
+            },
+            "command": "./Nerdle",
             "type": "shell",
             "problemMatcher": "$msCompile",
             "presentation": {
@@ -82,7 +85,7 @@
                 "focus": true,
                 "panel": "shared",
                 "showReuseMessage": true,
-                "clear": false,
+                "clear": true,
             },
             "runOptions": {
                 "instanceLimit": 1000, // big number for no limit
