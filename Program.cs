@@ -252,7 +252,7 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
 
         static IEnumerable<Markup> GenerateRow(KeyValuePair<char, (int? qty, int min)> kvp)
         {
-            yield return new(kvp.Key.ToString(), SwitchSymbolsQty<Style?>(kvp.Value, new(Color.Yellow), new(Color.Red), new(Color.Green), null));
+            yield return new(kvp.Key.ToString(), SwitchSymbolsQty(kvp.Value, Setting.Instance.SymbolsQtyStyles.MinQty, Setting.Instance.SymbolsQtyStyles.NotPresent, Setting.Instance.SymbolsQtyStyles.QtyFixed, Setting.Instance.SymbolsQtyStyles.QtyUnknows));
             yield return new(kvp.Value.qty?.ToString() ?? "?");
             yield return new(kvp.Value.min.ToString());
         }
