@@ -14,24 +14,9 @@
   ],
   "SortSymbols": true,
   "SymbolsQtyStyles": {
-    "MinQty": {
-      "Foreground": "FFFF00",
-      "Background": "000000",
-      "Decoration": "none",
-      "Link": null
-    },
-    "NotPresent": {
-      "Foreground": "FF0000",
-      "Background": "000000",
-      "Decoration": "none",
-      "Link": null
-    },
-    "QtyFixed": {
-      "Foreground": "008000",
-      "Background": "000000",
-      "Decoration": "none",
-      "Link": null
-    },
+    "MinQty": "yellow",
+    "NotPresent": "red",
+    "QtyFixed": "green",
     "QtyUnknows": null
   }
 }
