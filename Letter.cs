@@ -71,8 +71,8 @@ partial class Letter: IRenderable
 
     IEnumerable<Segment> IRenderable.Render(RenderOptions options, int maxWidth)
     {
-        var style = Setting.Instance.LetterModeStyle[LetterMode];
-        style = IsLetterSelected ? style.Combine(Setting.Instance.LetterSelectedStyle) : style;
+        var style = IsLetterSelected ? Setting.Instance.LetterSelectedStyle : Style.Plain;
+        style = style.Combine(Setting.Instance.LetterModeStyle[LetterMode]);
         if (!ValidSymbols.Contains(Selected))
             style = style.Decoration(style.Decoration | Decoration.Strikethrough);
         yield return new(Selected.ToString(), style.If(!RenderDecoration, static s => s.Decoration(Decoration.None)));
