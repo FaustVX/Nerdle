@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Spectre.Console;
 
 public class CancelException : Exception
 { }
@@ -136,15 +137,7 @@ public static partial class Ext
     internal static (int length, IReadOnlyList<Letter> guesses, IReadOnlySet<char> validSymbols, string? probabilityDictionary) Load(string? path = null)
     {
         path ??= "output.json";
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            Converters =
-            {
-                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-            },
-            TypeInfoResolver = JSONContext.Default,
-        };
+        var options = JSONContext.GetOptions();
         using var utf8Json = File.OpenRead(path);
 #pragma warning disable IL2026 // Using member 'System.Text.Json.JsonSerializer.Deserialize(Stream, Type, JsonSerializerOptions)' which has 'RequiresUnreferencedCodeAttribute' can break functionality when trimming application code. JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.
         var (length, guesses, validSymbols, file, _) = (Saving)JsonSerializer.Deserialize(utf8Json, typeof(Saving), options)!;
@@ -222,5 +215,67 @@ public static partial class Ext
     [JsonSerializable(typeof(int)), JsonSerializable(typeof(bool)), JsonSerializable(typeof(string)), JsonSerializable(typeof(HashSet<char>)), JsonSerializable(typeof(char)), JsonSerializable(typeof(List<Saving.Guess>)), JsonSerializable(typeof(Saving.Guess))]
     [JsonSerializable(typeof(IReadOnlySet<IReadOnlySet<char>>)), JsonSerializable(typeof(IReadOnlySet<char>)), JsonSerializable(typeof(char))]
     internal partial class JSONContext : JsonSerializerContext
-    { }
+    {
+        public static JsonSerializerOptions GetOptions()
+        => new()
+        {
+            WriteIndented = true,
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+                new IReadOnlySetConverter<string>(),
+                new IReadOnlySetConverter<int>(),
+                new StyleConverter(),
+            },
+            TypeInfoResolver = Default,
+        };
+
+        private sealed class IReadOnlySetConverter<T> : JsonConverter<IReadOnlySet<T>>
+        {
+            public override HashSet<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                if (reader.TokenType != JsonTokenType.StartArray)
+                    throw new JsonException();
+
+                reader.Read();
+
+                var elements = new HashSet<T>();
+
+                while (reader.TokenType != JsonTokenType.EndArray)
+                {
+                    elements.Add(JsonSerializer.Deserialize<T>(ref reader, options)!);
+                    reader.Read();
+                }
+
+                return elements;
+            }
+
+            public override void Write(Utf8JsonWriter writer, IReadOnlySet<T> value, JsonSerializerOptions options)
+            {
+                writer.WriteStartArray();
+                foreach (var symbol in value)
+                    JsonSerializer.Serialize(writer, symbol, options);
+                writer.WriteEndArray();
+            }
+        }
+
+        private sealed class StyleConverter : JsonConverter<Style>
+        {
+            public override Style? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                if (reader.TokenType != JsonTokenType.String)
+                    throw new JsonException();
+
+                var v = reader.GetString();
+                if (string.IsNullOrEmpty(v))
+                    return Spectre.Console.Style.Plain;
+                return Spectre.Console.Style.Parse(v);
+            }
+
+            public override void Write(Utf8JsonWriter writer, Style value, JsonSerializerOptions options)
+            => JsonSerializer.Serialize(writer, value.ToMarkup(), options);
+        }
+    }
 }

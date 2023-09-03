@@ -12,19 +12,7 @@ sealed partial class Setting
     internal static void Load()
     {
         var path = "settings.json";
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            AllowTrailingCommas = true,
-            Converters =
-            {
-                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
-                new IReadOnlySetConverter<string>(),
-                new IReadOnlySetConverter<int>(),
-                new StyleConverter(),
-            },
-            TypeInfoResolver = Ext.JSONContext.Default,
-        };
+        var options = Ext.JSONContext.GetOptions();
         try
         {
             using var stream = File.OpenRead(path);
@@ -71,50 +59,4 @@ sealed partial class Setting
 
     [JsonRequired]
     public required Style LetterSelectedStyle { get; init; } = new(decoration: Decoration.Italic | Decoration.Underline);
-
-    private sealed class IReadOnlySetConverter<T> : JsonConverter<IReadOnlySet<T>>
-    {
-        public override HashSet<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            if (reader.TokenType != JsonTokenType.StartArray)
-                throw new JsonException();
-
-            reader.Read();
-
-            var elements = new HashSet<T>();
-
-            while (reader.TokenType != JsonTokenType.EndArray)
-            {
-                elements.Add(JsonSerializer.Deserialize<T>(ref reader, options)!);
-                reader.Read();
-            }
-
-            return elements;
-        }
-
-        public override void Write(Utf8JsonWriter writer, IReadOnlySet<T> value, JsonSerializerOptions options)
-        {
-            writer.WriteStartArray();
-            foreach (var symbol in value)
-                JsonSerializer.Serialize(writer, symbol, options);
-            writer.WriteEndArray();
-        }
-    }
-
-    private sealed class StyleConverter : JsonConverter<Style>
-    {
-        public override Style? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            if (reader.TokenType != JsonTokenType.String)
-                throw new JsonException();
-
-            var v = reader.GetString();
-            if (string.IsNullOrEmpty(v))
-                return Style.Plain;
-            return Style.Parse(v);
-        }
-
-        public override void Write(Utf8JsonWriter writer, Style value, JsonSerializerOptions options)
-        => JsonSerializer.Serialize(writer, value.ToMarkup(), options);
-    }
 }
