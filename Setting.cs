@@ -108,14 +108,10 @@ sealed partial class Setting
             if (reader.TokenType != JsonTokenType.String)
                 throw new JsonException();
 
-            try
-            {
-                return Style.Parse(reader.GetString()!);
-            }
-            catch (System.Exception)
-            {
+            var v = reader.GetString();
+            if (string.IsNullOrEmpty(v))
                 return Style.Plain;
-            }
+            return Style.Parse(v);
         }
 
         public override void Write(Utf8JsonWriter writer, Style value, JsonSerializerOptions options)
