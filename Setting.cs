@@ -4,9 +4,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
 
-public sealed record class SymbolsQtyStyles(Style? MinQty, Style? NotPresent, Style? QtyFixed, Style? QtyUnknows);
+sealed record class SymbolsQtyStyles(Style? MinQty, Style? NotPresent, Style? QtyFixed, Style? QtyUnknows);
 
-public sealed partial class Setting
+sealed partial class Setting
 {
     [ModuleInitializer]
     internal static void Load()
@@ -60,6 +60,18 @@ public sealed partial class Setting
     [JsonRequired]
     public required SymbolsQtyStyles SymbolsQtyStyles { get; init; } = new(new(Color.Yellow), new(Color.Red), new(Color.Green), null);
 
+    [JsonRequired]
+    public required Dictionary<LetterMode, Style> LetterModeStyle { get; init; } = new(new Dictionary<LetterMode, Style>()
+    {
+        [LetterMode.Unknown] = Style.Plain,
+        [LetterMode.CorrectPlace] = new(Color.Green),
+        [LetterMode.InvalidePlace] = new(Color.Yellow),
+        [LetterMode.InvalideLetter] = new(Color.Grey, Color.Black),
+    });
+
+    [JsonRequired]
+    public required Style LetterSelectedStyle { get; init; } = new(decoration: Decoration.Italic | Decoration.Underline);
+
     private sealed class IReadOnlySetConverter<T> : JsonConverter<IReadOnlySet<T>>
     {
         public override HashSet<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -96,7 +108,14 @@ public sealed partial class Setting
             if (reader.TokenType != JsonTokenType.String)
                 throw new JsonException();
 
-            return Style.Parse(reader.GetString()!);
+            try
+            {
+                return Style.Parse(reader.GetString()!);
+            }
+            catch (System.Exception)
+            {
+                return Style.Plain;
+            }
         }
 
         public override void Write(Utf8JsonWriter writer, Style value, JsonSerializerOptions options)

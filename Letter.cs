@@ -1,6 +1,5 @@
 using Spectre.Console;
 using Spectre.Console.Rendering;
-using System.Diagnostics;
 
 partial class Letter: IRenderable
 {
@@ -50,7 +49,7 @@ partial class Letter: IRenderable
         {
             if (_symbols is null)
             {
-                _symbols = value?.ToArray() ?? Array.Empty<char>();
+                _symbols = value?.ToArray() ?? [];
                 if (SymbolsLength <= 1)
                     LetterMode = LetterMode.CorrectPlace;
                 return;
@@ -72,18 +71,11 @@ partial class Letter: IRenderable
 
     IEnumerable<Segment> IRenderable.Render(RenderOptions options, int maxWidth)
     {
-        var (background, foreground) = LetterMode switch
-        {
-            LetterMode.Unknown => (Color.Default, Color.Default),
-            LetterMode.CorrectPlace => (Color.Green, Color.Default),
-            LetterMode.InvalidePlace => (Color.Yellow, Color.Default),
-            LetterMode.InvalideLetter => (Color.Grey, Color.Black),
-            _ => throw new UnreachableException(),
-        };
-        var decoration = IsLetterSelected ? Decoration.Italic | Decoration.Underline : default;
+        var style = Setting.Instance.LetterModeStyle[LetterMode];
+        style = IsLetterSelected ? style.Combine(Setting.Instance.LetterSelectedStyle) : style;
         if (!ValidSymbols.Contains(Selected))
-            decoration |= Decoration.Strikethrough;
-        yield return new(Selected.ToString(), new(background: background, foreground: foreground, decoration: RenderDecoration ? decoration : null));
+            style = style.Decoration(style.Decoration | Decoration.Strikethrough);
+        yield return new(Selected.ToString(), style.If(!RenderDecoration, static s => s.Decoration(Decoration.None)));
     }
 
     public ProcessKeyReturn ProcessKey(ConsoleKeyInfo key)

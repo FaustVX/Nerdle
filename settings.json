@@ -18,5 +18,12 @@
     "NotPresent": "red",
     "QtyFixed": "green",
     "QtyUnknows": null
-  }
+  },
+  "LetterModeStyle": {
+    "unknown": "",
+    "correctPlace": "green",
+    "invalidePlace": "yellow",
+    "invalideLetter": "grey on black"
+  },
+  "LetterSelectedStyle": "italic underline"
 }
