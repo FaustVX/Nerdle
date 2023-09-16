@@ -237,9 +237,10 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
         symbolsGrid.AddColumn("Symbol");
         symbolsGrid.AddColumn("Quantity");
         symbolsGrid.AddColumn("Minimum");
-        symbolsQty
-            .AsEnumerable()
-            .If(Setting.Instance.SortSymbols, static s => s.OrderBy(static s => SwitchSymbolsQty(s.Value, 1, 3, 0, 2)))
+        symbolsQty.AsEnumerable()
+            .If(Setting.Instance.SortSymbols, static s => s
+                .OrderBy(static s => SwitchSymbolsQty(s.Value, 1, 3, 0, 2))
+                .ThenByDescending(static s => SwitchSymbolsQty(s.Value, s.Value.min, 0, s.Value.qty ?? 0, 0)))
             .Select(GenerateRow)
             .Execute(symbolsGrid.AddRow);
 
