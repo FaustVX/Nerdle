@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -49,13 +50,13 @@ sealed partial class Setting
     public required SymbolsQtyStyles SymbolsQtyStyles { get; init; } = new(new(Color.Yellow), new(Color.Red), new(Color.Green), null);
 
     [JsonRequired]
-    public required Dictionary<LetterMode, Style> LetterModeStyle { get; init; } = new(new Dictionary<LetterMode, Style>()
+    public required FrozenDictionary<LetterMode, Style> LetterModeStyle { get; init; } = new Dictionary<LetterMode, Style>()
     {
         [LetterMode.Unknown] = Style.Plain,
         [LetterMode.CorrectPlace] = new(Color.Green),
         [LetterMode.InvalidePlace] = new(Color.Yellow),
         [LetterMode.InvalideLetter] = new(Color.Grey, Color.Black),
-    });
+    }.ToFrozenDictionary();
 
     [JsonRequired]
     public required Style LetterSelectedStyle { get; init; } = new(decoration: Decoration.Italic | Decoration.Underline);

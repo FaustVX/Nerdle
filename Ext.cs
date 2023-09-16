@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -213,7 +214,7 @@ public static partial class Ext
 
     [JsonSerializable(typeof(Saving)), JsonSerializable(typeof(Setting))]
     [JsonSerializable(typeof(int)), JsonSerializable(typeof(bool)), JsonSerializable(typeof(string)), JsonSerializable(typeof(HashSet<char>)), JsonSerializable(typeof(char)), JsonSerializable(typeof(List<Saving.Guess>)), JsonSerializable(typeof(Saving.Guess))]
-    [JsonSerializable(typeof(IReadOnlySet<IReadOnlySet<char>>)), JsonSerializable(typeof(IReadOnlySet<char>)), JsonSerializable(typeof(char))]
+    [JsonSerializable(typeof(IReadOnlySet<IReadOnlySet<char>>)), JsonSerializable(typeof(IReadOnlySet<char>)), JsonSerializable(typeof(char)), JsonSerializable(typeof(FrozenDictionary<LetterMode, Style>))]
     internal partial class JSONContext : JsonSerializerContext
     {
         public static JsonSerializerOptions GetOptions()
@@ -227,6 +228,7 @@ public static partial class Ext
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
                 new IReadOnlySetConverter<string>(),
                 new IReadOnlySetConverter<int>(),
+                new FrozenDictionaryConverter<LetterMode, Style>(),
                 new StyleConverter(),
             },
             TypeInfoResolver = Default,
@@ -253,6 +255,42 @@ public static partial class Ext
             }
 
             public override void Write(Utf8JsonWriter writer, IReadOnlySet<T> value, JsonSerializerOptions options)
+            {
+                writer.WriteStartArray();
+                foreach (var symbol in value)
+                    JsonSerializer.Serialize(writer, symbol, options);
+                writer.WriteEndArray();
+            }
+        }
+
+        private sealed class FrozenDictionaryConverter<TKey, TValue> : JsonConverter<FrozenDictionary<TKey, TValue>>
+        where TKey : notnull
+        {
+            public override FrozenDictionary<TKey, TValue>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                if (reader.TokenType != JsonTokenType.StartObject)
+                    throw new JsonException();
+
+                reader.Read();
+
+                var elements = new Dictionary<TKey, TValue>();
+
+                while (reader.TokenType != JsonTokenType.EndObject)
+                {
+                    if (reader.TokenType != JsonTokenType.PropertyName)
+                        throw new JsonException();
+                    var property = reader.GetString()!;
+                    var key = JsonSerializer.Deserialize<TKey>($"\"{property}\"", options)!;
+                    reader.Read();
+                    var value = JsonSerializer.Deserialize<TValue>(ref reader, options)!;
+                    reader.Read();
+                    elements.Add(key, value);
+                }
+
+                return elements.ToFrozenDictionary();
+            }
+
+            public override void Write(Utf8JsonWriter writer, FrozenDictionary<TKey, TValue> value, JsonSerializerOptions options)
             {
                 writer.WriteStartArray();
                 foreach (var symbol in value)
