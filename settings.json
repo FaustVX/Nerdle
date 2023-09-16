@@ -17,7 +17,7 @@
   "Themes": {
     "Default": {
       "SymbolsQtyStyles": {
-        "MinQty": "yellow",
+        "MinQty": "yellow on black",
         "NotPresent": "red",
         "QtyFixed": "green",
         "QtyUnknows": null
@@ -25,11 +25,40 @@
       "LetterModeStyle": {
         "unknown": "",
         "correctPlace": "green",
-        "invalidePlace": "yellow",
+        "invalidePlace": "yellow on black",
+        "invalideLetter": "grey on black"
+      },
+      "LetterSelectedStyle": "italic underline"
+    },
+    "Le Mot": {
+      "SymbolsQtyStyles": {
+        "MinQty": "white on yellow",
+        "NotPresent": "grey on black",
+        "QtyFixed": "white on green",
+        "QtyUnknows": null
+      },
+      "LetterModeStyle": {
+        "unknown": "white on grey",
+        "correctPlace": "white on green",
+        "invalidePlace": "white on yellow",
+        "invalideLetter": "grey on black"
+      },
+      "LetterSelectedStyle": "italic underline"
+    },
+    "Nerdle": {
+      "SymbolsQtyStyles": {
+        "MinQty": "white on purple",
+        "NotPresent": "grey on black",
+        "QtyFixed": "white on green",
+        "QtyUnknows": null
+      },
+      "LetterModeStyle": {
+        "unknown": "white on grey",
+        "correctPlace": "white on green",
+        "invalidePlace": "white on purple",
         "invalideLetter": "grey on black"
       },
       "LetterSelectedStyle": "italic underline"
     }
-  },
-  "SelectedTheme": "Default"
+  }
 }

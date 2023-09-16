@@ -41,9 +41,7 @@ sealed partial class Setting
 
     [SetsRequiredMembers]
     public Setting()
-    {
-        SelectedTheme = "Default";
-    }
+    { }
 
     public static Setting Instance { get; private set; } = default!;
 
@@ -67,26 +65,20 @@ sealed partial class Setting
         ["Default"] = Theme.Default(),
     }.ToFrozenDictionary();
 
-    private readonly string _selectedThemeName = default!;
-    private readonly Theme _selectedTheme = default!;
+    [JsonIgnore]
+    public Theme Theme { get; set; } = default!;
 
-    [JsonRequired]
-    public required string SelectedTheme
+    public string SelectedTheme
     {
-        get => _selectedThemeName;
-        init
-        {
-            _selectedTheme = Themes[value];
-            _selectedThemeName = value;
-        }
+        init => Theme = Themes.TryGetValue(value ?? "", out var theme) ? theme : Theme;
     }
 
     [JsonIgnore]
-    public SymbolsQtyStyles SymbolsQtyStyles => _selectedTheme.SymbolsQtyStyles;
+    public SymbolsQtyStyles SymbolsQtyStyles => Theme.SymbolsQtyStyles;
 
     [JsonIgnore]
-    public FrozenDictionary<LetterMode, Style> LetterModeStyle => _selectedTheme.LetterModeStyle;
+    public FrozenDictionary<LetterMode, Style> LetterModeStyle => Theme.LetterModeStyle;
 
     [JsonIgnore]
-    public Style LetterSelectedStyle => _selectedTheme.LetterSelectedStyle;
+    public Style LetterSelectedStyle => Theme.LetterSelectedStyle;
 }

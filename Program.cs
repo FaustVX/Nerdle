@@ -22,6 +22,18 @@ var probabilities = probabilityPath is not null
 
 static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymbols, string? probabilityPath) Load(string[] args)
 {
+    if (Setting.Instance.Theme is null)
+        if (Setting.Instance.Themes.Count != 1)
+            Setting.Instance.Theme = AnsiConsole.Prompt(
+                new SelectionPrompt<KeyValuePair<string, Theme>>()
+                {
+                    Title = "Select a theme",
+                    Converter = static kvp => kvp.Key,
+                }
+                .AddChoices(Setting.Instance.Themes)).Value;
+        else
+            Setting.Instance.Theme = Setting.Instance.Themes.Values.First();
+
     if (args is [])
     {
         if (AnsiConsole.Prompt(
