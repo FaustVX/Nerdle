@@ -214,7 +214,7 @@ public static partial class Ext
 
     [JsonSerializable(typeof(Saving)), JsonSerializable(typeof(Setting))]
     [JsonSerializable(typeof(int)), JsonSerializable(typeof(bool)), JsonSerializable(typeof(string)), JsonSerializable(typeof(HashSet<char>)), JsonSerializable(typeof(char)), JsonSerializable(typeof(List<Saving.Guess>)), JsonSerializable(typeof(Saving.Guess))]
-    [JsonSerializable(typeof(IReadOnlySet<IReadOnlySet<char>>)), JsonSerializable(typeof(IReadOnlySet<char>)), JsonSerializable(typeof(char)), JsonSerializable(typeof(FrozenDictionary<LetterMode, Style>))]
+    [JsonSerializable(typeof(IReadOnlySet<IReadOnlySet<char>>)), JsonSerializable(typeof(IReadOnlySet<char>)), JsonSerializable(typeof(char)), JsonSerializable(typeof(FrozenDictionary<LetterMode, Style>)), JsonSerializable(typeof(FrozenDictionary<string, Theme>)), JsonSerializable(typeof(Theme))]
     internal partial class JSONContext : JsonSerializerContext
     {
         public static JsonSerializerOptions GetOptions()
@@ -228,6 +228,7 @@ public static partial class Ext
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
                 new IReadOnlySetConverter<string>(),
                 new IReadOnlySetConverter<int>(),
+                new FrozenDictionaryConverter<string, Theme>(),
                 new FrozenDictionaryConverter<LetterMode, Style>(),
                 new StyleConverter(),
             },
@@ -292,10 +293,13 @@ public static partial class Ext
 
             public override void Write(Utf8JsonWriter writer, FrozenDictionary<TKey, TValue> value, JsonSerializerOptions options)
             {
-                writer.WriteStartArray();
-                foreach (var symbol in value)
-                    JsonSerializer.Serialize(writer, symbol, options);
-                writer.WriteEndArray();
+                writer.WriteStartObject();
+                foreach (var (key, val) in value)
+                {
+                    writer.WritePropertyName(JsonSerializer.Serialize(key, options)[1..^1]);
+                    JsonSerializer.Serialize(writer, val, options);
+                }
+                writer.WriteEndObject();
             }
         }
 

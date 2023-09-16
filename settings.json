@@ -14,17 +14,22 @@
     10
   ],
   "SortSymbols": true,
-  "SymbolsQtyStyles": {
-    "MinQty": "yellow",
-    "NotPresent": "red",
-    "QtyFixed": "green",
-    "QtyUnknows": null
+  "Themes": {
+    "Default": {
+      "SymbolsQtyStyles": {
+        "MinQty": "yellow",
+        "NotPresent": "red",
+        "QtyFixed": "green",
+        "QtyUnknows": null
+      },
+      "LetterModeStyle": {
+        "unknown": "",
+        "correctPlace": "green",
+        "invalidePlace": "yellow",
+        "invalideLetter": "grey on black"
+      },
+      "LetterSelectedStyle": "italic underline"
+    }
   },
-  "LetterModeStyle": {
-    "unknown": "",
-    "correctPlace": "green",
-    "invalidePlace": "yellow",
-    "invalideLetter": "grey on black"
-  },
-  "LetterSelectedStyle": "italic underline"
+  "SelectedTheme": "Default"
 }

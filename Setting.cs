@@ -1,4 +1,4 @@
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -6,6 +6,19 @@ using System.Text.Json.Serialization;
 using Spectre.Console;
 
 sealed record class SymbolsQtyStyles(Style? MinQty, Style? NotPresent, Style? QtyFixed, Style? QtyUnknows);
+sealed record class Theme(SymbolsQtyStyles SymbolsQtyStyles, FrozenDictionary<LetterMode, Style> LetterModeStyle, Style LetterSelectedStyle)
+{
+    public static Theme Default()
+        => new(new(new(Color.Yellow), new(Color.Red), new(Color.Green), null),
+            new Dictionary<LetterMode, Style>()
+            {
+                [LetterMode.Unknown] = Style.Plain,
+                [LetterMode.CorrectPlace] = new(Color.Green),
+                [LetterMode.InvalidePlace] = new(Color.Yellow),
+                [LetterMode.InvalideLetter] = new(Color.Grey, Color.Black),
+            }.ToFrozenDictionary(),
+            new(decoration: Decoration.Italic | Decoration.Underline));
+}
 
 sealed partial class Setting
 {
@@ -28,7 +41,9 @@ sealed partial class Setting
 
     [SetsRequiredMembers]
     public Setting()
-    { }
+    {
+        SelectedTheme = "Default";
+    }
 
     public static Setting Instance { get; private set; } = default!;
 
@@ -47,17 +62,31 @@ sealed partial class Setting
     public required bool SortSymbols { get; init; } = true;
 
     [JsonRequired]
-    public required SymbolsQtyStyles SymbolsQtyStyles { get; init; } = new(new(Color.Yellow), new(Color.Red), new(Color.Green), null);
-
-    [JsonRequired]
-    public required FrozenDictionary<LetterMode, Style> LetterModeStyle { get; init; } = new Dictionary<LetterMode, Style>()
+    public required FrozenDictionary<string, Theme> Themes { get; init; } = new Dictionary<string, Theme>()
     {
-        [LetterMode.Unknown] = Style.Plain,
-        [LetterMode.CorrectPlace] = new(Color.Green),
-        [LetterMode.InvalidePlace] = new(Color.Yellow),
-        [LetterMode.InvalideLetter] = new(Color.Grey, Color.Black),
+        ["Default"] = Theme.Default(),
     }.ToFrozenDictionary();
 
+    private readonly string _selectedThemeName = default!;
+    private readonly Theme _selectedTheme = default!;
+
     [JsonRequired]
-    public required Style LetterSelectedStyle { get; init; } = new(decoration: Decoration.Italic | Decoration.Underline);
+    public required string SelectedTheme
+    {
+        get => _selectedThemeName;
+        init
+        {
+            _selectedTheme = Themes[value];
+            _selectedThemeName = value;
+        }
+    }
+
+    [JsonIgnore]
+    public SymbolsQtyStyles SymbolsQtyStyles => _selectedTheme.SymbolsQtyStyles;
+
+    [JsonIgnore]
+    public FrozenDictionary<LetterMode, Style> LetterModeStyle => _selectedTheme.LetterModeStyle;
+
+    [JsonIgnore]
+    public Style LetterSelectedStyle => _selectedTheme.LetterSelectedStyle;
 }
