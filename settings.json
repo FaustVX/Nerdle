@@ -30,7 +30,7 @@
       },
       "LetterSelectedStyle": "italic underline"
     },
-    "Le Mot": {
+    "[link=https://wordle.louan.me]Le Mot[/]": {
       "SymbolsQtyStyles": {
         "MinQty": "white on yellow",
         "NotPresent": "grey on black",
@@ -45,7 +45,7 @@
       },
       "LetterSelectedStyle": "italic underline"
     },
-    "Nerdle": {
+    "[link=https://nerdlegame.com]Nerdle[/]": {
       "SymbolsQtyStyles": {
         "MinQty": "white on purple",
         "NotPresent": "grey on black",
@@ -60,7 +60,7 @@
       },
       "LetterSelectedStyle": "italic underline"
     },
-    "Sutom": {
+    "[link=https://sutom.nocle.fr]Sutom[/]": {
       "SymbolsQtyStyles": {
         "MinQty": "white on yellow",
         "NotPresent": "default on blue",

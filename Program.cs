@@ -28,7 +28,7 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
                 new SelectionPrompt<KeyValuePair<string, Theme>>()
                 {
                     Title = "Select a theme",
-                    Converter = static kvp => kvp.Key,
+                    Converter = static kvp => kvp.Key + $" [[[{kvp.Value.LetterModeStyle[LetterMode.Unknown].ToMarkupOk()}]t[/][{kvp.Value.LetterModeStyle[LetterMode.CorrectPlace].ToMarkupOk()}]e[/][{kvp.Value.LetterModeStyle[LetterMode.InvalidePlace].ToMarkupOk()}]s[/][{kvp.Value.LetterModeStyle[LetterMode.InvalideLetter].ToMarkupOk()}]t[/]]]",
                 }
                 .AddChoices(Setting.Instance.Themes)).Value;
         else

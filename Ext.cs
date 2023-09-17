@@ -146,6 +146,14 @@ public static partial class Ext
         return (length, guesses, validSymbols, file);
     }
 
+    public static string ToMarkupOk(this Style style)
+    {
+        var markup = style.ToMarkup();
+        if (string.IsNullOrWhiteSpace(markup))
+            return "default";
+        return markup;
+    }
+
 #if !NET8_0_OR_GREATER
     public static int Count<T>(this ReadOnlySpan<T> values, T value)
     {
