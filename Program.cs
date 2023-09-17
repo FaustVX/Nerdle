@@ -369,15 +369,19 @@ static (Letter[][] words, (Option<char>, char[]?)[] slots, Dictionary<char, (int
     var symbolsQty = symbols
         .ToDictionary(static s => s, static s => (qty: new int?(), min: 0));
     foreach (var word in words)
-        foreach (var (c, letters) in word.GroupBy(static l => l.Selected).ToDictionary(static g => g.Key, static g => g.OrderBy(static l => l.LetterMode).ToArray()))
+        foreach (var (c, letters) in word
+            .GroupBy(static l => l.Selected)
+            .ToDictionary(static g => g.Key, static g => g
+                .OrderBy(static l => l.LetterMode)
+                .ToArray()))
+        {
+            ref var symbol = ref CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c);
             if (letters[0].LetterMode is LetterMode.InvalideLetter)
-                CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = 0;
+                symbol.qty = 0;
             else if (letters[^1].LetterMode is LetterMode.InvalideLetter)
-                CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c).qty = letters.Count(static l => l.LetterMode is not LetterMode.InvalideLetter);
+                symbol.qty = symbol.min = letters.Count(static l => l.LetterMode is not LetterMode.InvalideLetter);
             else
-            {
-                ref var symbol = ref CollectionsMarshal.GetValueRefOrNullRef(symbolsQty, c);
                 symbol.min = Math.Max(letters.Length, symbol.min);
-            }
+        }
     return (words, slots, symbolsQty);
 }
