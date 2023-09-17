@@ -115,7 +115,9 @@ static (int length, IReadOnlyList<Letter>? guesses, IReadOnlySet<char> validSymb
     }
 }
 
-var table = new Table();
+var table = new Table()
+    .Border(TableBorder.None)
+    .HideHeaders();
 
 for (var s = 1; s <= slotsLength; s++)
     table.AddColumn(new TableColumn(s.ToString()) { Alignment = Justify.Center });
@@ -257,11 +259,15 @@ static void DisplaySummary(IReadOnlyList<char[]>? candidates, IReadOnlyDictionar
             .Execute(symbolsGrid.AddRow);
 
         AnsiConsole.Clear();
+        table.ShowHeaders();
+        (table.Border, var border) = (symbolsGrid.Border, table.Border);
         table.Expand = true;
         Letter.RenderDecoration = false;
         AnsiConsole.Write(new Layout().SplitColumns(outputLayout, new("Symbols", new Panel(symbolsGrid) { Header = new($"Symbols ({symbolsGrid.Rows.Count})"), Expand = true }), new(new Panel(table) { Header = new($"Guesses ({table.Rows.Count})"), Expand = true })));
         Letter.RenderDecoration = true;
+        table.Border = border;
         table.Expand = false;
+        table.HideHeaders();
 
         static IEnumerable<Markup> GenerateRow(KeyValuePair<char, (int? qty, int min)> kvp)
         {

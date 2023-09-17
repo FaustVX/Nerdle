@@ -59,6 +59,21 @@
         "invalideLetter": "grey on black"
       },
       "LetterSelectedStyle": "italic underline"
+    },
+    "Sutom": {
+      "SymbolsQtyStyles": {
+        "MinQty": "white on yellow",
+        "NotPresent": "default on blue",
+        "QtyFixed": "white on red",
+        "QtyUnknows": null
+      },
+      "LetterModeStyle": {
+        "unknown": "white on grey",
+        "correctPlace": "white on red",
+        "invalidePlace": "white on yellow",
+        "invalideLetter": "default on blue"
+      },
+      "LetterSelectedStyle": "italic underline"
     }
   }
 }
