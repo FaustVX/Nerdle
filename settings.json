@@ -32,7 +32,7 @@
     },
     "[link=https://wordle.louan.me]Le Mot[/]": {
       "SymbolsQtyStyles": {
-        "MinQty": "white on yellow",
+        "MinQty": "black on yellow",
         "NotPresent": "grey on black",
         "QtyFixed": "white on green",
         "QtyUnknows": null
@@ -40,7 +40,7 @@
       "LetterModeStyle": {
         "unknown": "white on grey",
         "correctPlace": "white on green",
-        "invalidePlace": "white on yellow",
+        "invalidePlace": "black on yellow",
         "invalideLetter": "grey on black"
       },
       "LetterSelectedStyle": "italic underline"
@@ -62,7 +62,7 @@
     },
     "[link=https://sutom.nocle.fr]Sutom[/]": {
       "SymbolsQtyStyles": {
-        "MinQty": "white on yellow",
+        "MinQty": "black on yellow",
         "NotPresent": "default on blue",
         "QtyFixed": "white on red",
         "QtyUnknows": null
@@ -70,7 +70,7 @@
       "LetterModeStyle": {
         "unknown": "white on grey",
         "correctPlace": "white on red",
-        "invalidePlace": "white on yellow",
+        "invalidePlace": "black on yellow",
         "invalideLetter": "default on blue"
       },
       "LetterSelectedStyle": "italic underline"
